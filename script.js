@@ -15,7 +15,13 @@ const PRODUCTS = [
     delivery: 'Initial delivery is planned for selected Ahmedabad societies, with wider Ahmedabad delivery added as capacity allows. Orders are prepaid and production starts after successful payment.',
     gifting: 'Festive and corporate gifting is planned for societies, offices and local businesses. Bulk quantity pricing will be finalized before launch.',
     colors: ['#401015','#7b2d37','#d4a15d'],
-    media: ['assets/makhana-main.webp','assets/makhana-gift.webp'],
+    media: [
+      'assets/makhana-hero-hires.webp',
+      'assets/makhana-close-hires.webp',
+      'assets/makhana-platter-hires.webp',
+      'assets/makhana-gift-hires.webp',
+      'assets/makhana-gift-open-hires.webp'
+    ],
     art: 'bites'
   },
   {
