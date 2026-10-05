@@ -171,11 +171,21 @@ function openProduct(id, sourceCard){
   history.pushState({product:id},'', '#product/'+id);
 }
 
+function setDetailMedia(src){
+  if(!src){
+    detailMedia.innerHTML = artSvg(activeProduct,'detail');
+    return;
+  }
+  detailMedia.innerHTML = `<button class="detail-photo-button" type="button" aria-label="Open larger product photo"><img src="${src}" alt="${activeProduct.name}" decoding="async"></button>`;
+  detailMedia.querySelector('.detail-photo-button')?.addEventListener('click',()=>openPhotoLightbox(src));
+}
+
 function fillProduct(){
   detailKicker.textContent = activeProduct.kicker;
   detailTitle.textContent = activeProduct.name;
   detailDescription.textContent = activeProduct.description;
-  detailMedia.innerHTML = artSvg(activeProduct,'detail');
+  if(activeProduct.media?.length) setDetailMedia(activeProduct.media[0]);
+  else detailMedia.innerHTML = artSvg(activeProduct,'detail');
   renderPacks();
   infoPanel.className='info-panel';
   infoPanel.innerHTML='';
@@ -224,15 +234,38 @@ document.querySelectorAll('.info-card').forEach(btn=>{
     if(key==='gifting') html='<p><strong>Gifting</strong><br>'+activeProduct.gifting+'</p>';
     if(key==='photos'){
       if(activeProduct.media?.length){
-        html='<div class="photo-grid">'+activeProduct.media.map((src,i)=>'<img src="'+src+'" alt="'+activeProduct.name+' photo '+(i+1)+'" loading="lazy">').join('')+'</div>';
+        html='<div class="photo-gallery-head"><strong>Product photos</strong><span>Tap any photo to view it above. Tap the large photo to open full-screen.</span></div><div class="photo-grid">'+activeProduct.media.map((src,i)=>'<button type="button" class="photo-thumb '+(i===0?'active':'')+'" data-photo="'+src+'" aria-label="View '+activeProduct.name+' photo '+(i+1)+'"><img src="'+src+'" alt="'+activeProduct.name+' photo '+(i+1)+'" loading="lazy" decoding="async"></button>').join('')+'</div>';
       }else{
         html='<p><strong>Photos</strong><br>Product photography will be added after the Coconut Mewa Ladoo is finalized.</p>';
       }
     }
     infoPanel.innerHTML=html;
-    infoPanel.className='info-panel show';
+    infoPanel.className='info-panel show'+(key==='photos'?' photos-open':'');
+    if(key==='photos'){
+      infoPanel.querySelectorAll('.photo-thumb').forEach(btn=>btn.addEventListener('click',()=>{
+        setDetailMedia(btn.dataset.photo);
+        infoPanel.querySelectorAll('.photo-thumb').forEach(x=>x.classList.remove('active'));
+        btn.classList.add('active');
+      }));
+    }
   });
 });
+
+function openPhotoLightbox(src){
+  let box=document.getElementById('photoLightbox');
+  if(!box){
+    box=document.createElement('div');
+    box.id='photoLightbox';
+    box.className='photo-lightbox';
+    box.innerHTML='<button type="button" class="photo-lightbox-close" aria-label="Close image">×</button><img alt="">';
+    document.body.appendChild(box);
+    box.addEventListener('click',(e)=>{ if(e.target===box || e.target.closest('.photo-lightbox-close')) box.classList.remove('open'); });
+  }
+  const img=box.querySelector('img');
+  img.src=src;
+  img.alt=activeProduct.name;
+  box.classList.add('open');
+}
 
 document.getElementById('openCheckout').addEventListener('click',()=>{
   checkoutSummary.innerHTML=`<strong>${activeProduct.name} — ${activePack.label}</strong><span>${money(activePack.price)} each • prepaid order</span>`;
