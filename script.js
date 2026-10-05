@@ -15,6 +15,7 @@ const PRODUCTS = [
     delivery: 'Initial delivery is planned for selected Ahmedabad societies, with wider Ahmedabad delivery added as capacity allows. Orders are prepaid and production starts after successful payment.',
     gifting: 'Festive and corporate gifting is planned for societies, offices and local businesses. Bulk quantity pricing will be finalized before launch.',
     colors: ['#401015','#7b2d37','#d4a15d'],
+    media: ['assets/makhana-main.webp','assets/makhana-gift.webp'],
     art: 'bites'
   },
   {
@@ -106,6 +107,10 @@ function ladooSvg(id=''){
 }
 
 function artSvg(product, suffix='card'){
+  if(product.media?.length){
+    const src = suffix === 'detail' ? product.media[0] : product.media[0];
+    return `<img src="${src}" alt="${product.name}" loading="${suffix==='card'?'eager':'lazy'}" decoding="async">`;
+  }
   return product.art === 'ladoo' ? ladooSvg(product.id+'-'+suffix) : bitesSvg(product.id+'-'+suffix);
 }
 
@@ -211,7 +216,13 @@ document.querySelectorAll('.info-card').forEach(btn=>{
     if(key==='ingredients') html='<p><strong>Ingredients</strong></p><ul>'+activeProduct.ingredients.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
     if(key==='delivery') html='<p><strong>Delivery</strong><br>'+activeProduct.delivery+'</p>';
     if(key==='gifting') html='<p><strong>Gifting</strong><br>'+activeProduct.gifting+'</p>';
-    if(key==='photos') html='<p><strong>Photos</strong><br>For this family-preview build, product artwork is being used as a placeholder. Final real product and packaging photos will replace it before launch.</p>';
+    if(key==='photos'){
+      if(activeProduct.media?.length){
+        html='<div class="photo-grid">'+activeProduct.media.map((src,i)=>'<img src="'+src+'" alt="'+activeProduct.name+' photo '+(i+1)+'" loading="lazy">').join('')+'</div>';
+      }else{
+        html='<p><strong>Photos</strong><br>Product photography will be added after the Coconut Mewa Ladoo is finalized.</p>';
+      }
+    }
     infoPanel.innerHTML=html;
     infoPanel.className='info-panel show';
   });
