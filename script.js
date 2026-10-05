@@ -46,6 +46,7 @@ const PRODUCTS = [
 
 let activeProduct = PRODUCTS[0];
 let activePack = activeProduct.packs[0];
+let activeMediaIndex = 0;
 
 const grid = document.getElementById('productGrid');
 const productLayer = document.getElementById('productLayer');
@@ -171,21 +172,38 @@ function openProduct(id, sourceCard){
   history.pushState({product:id},'', '#product/'+id);
 }
 
-function setDetailMedia(src){
-  if(!src){
+function renderDetailGallery(index=0){
+  activeMediaIndex = Math.max(0, Math.min(index, (activeProduct.media?.length || 1)-1));
+  if(!activeProduct.media?.length){
     detailMedia.innerHTML = artSvg(activeProduct,'detail');
     return;
   }
-  detailMedia.innerHTML = `<button class="detail-photo-button" type="button" aria-label="Open larger product photo"><img src="${src}" alt="${activeProduct.name}" decoding="async"></button>`;
-  detailMedia.querySelector('.detail-photo-button')?.addEventListener('click',()=>openPhotoLightbox(src));
+  const src = activeProduct.media[activeMediaIndex];
+  detailMedia.innerHTML = `
+    <div class="detail-gallery">
+      <button class="detail-photo-button" type="button" aria-label="Open ${activeProduct.name} photo ${activeMediaIndex+1} full screen">
+        <img src="${src}" alt="${activeProduct.name} photo ${activeMediaIndex+1}" decoding="async">
+        <span class="zoom-hint">Tap to enlarge</span>
+      </button>
+      <div class="detail-thumb-strip" aria-label="${activeProduct.name} photo gallery">
+        ${activeProduct.media.map((photo,i)=>`
+          <button type="button" class="detail-thumb ${i===activeMediaIndex?'active':''}" data-index="${i}" aria-label="View photo ${i+1} of ${activeProduct.media.length}">
+            <img src="${photo}" alt="${activeProduct.name} thumbnail ${i+1}" loading="lazy" decoding="async">
+          </button>`).join('')}
+      </div>
+    </div>`;
+  detailMedia.querySelector('.detail-photo-button')?.addEventListener('click',()=>openPhotoLightbox(activeMediaIndex));
+  detailMedia.querySelectorAll('.detail-thumb').forEach(btn=>btn.addEventListener('click',()=>{
+    renderDetailGallery(Number(btn.dataset.index));
+  }));
 }
 
 function fillProduct(){
   detailKicker.textContent = activeProduct.kicker;
   detailTitle.textContent = activeProduct.name;
   detailDescription.textContent = activeProduct.description;
-  if(activeProduct.media?.length) setDetailMedia(activeProduct.media[0]);
-  else detailMedia.innerHTML = artSvg(activeProduct,'detail');
+  activeMediaIndex = 0;
+  renderDetailGallery(0);
   renderPacks();
   infoPanel.className='info-panel';
   infoPanel.innerHTML='';
@@ -243,7 +261,8 @@ document.querySelectorAll('.info-card').forEach(btn=>{
     infoPanel.className='info-panel show'+(key==='photos'?' photos-open':'');
     if(key==='photos'){
       infoPanel.querySelectorAll('.photo-thumb').forEach(btn=>btn.addEventListener('click',()=>{
-        setDetailMedia(btn.dataset.photo);
+        const idx = activeProduct.media.indexOf(btn.dataset.photo);
+        renderDetailGallery(idx < 0 ? 0 : idx);
         infoPanel.querySelectorAll('.photo-thumb').forEach(x=>x.classList.remove('active'));
         btn.classList.add('active');
       }));
@@ -251,20 +270,54 @@ document.querySelectorAll('.info-card').forEach(btn=>{
   });
 });
 
-function openPhotoLightbox(src){
+function openPhotoLightbox(index=0){
+  if(!activeProduct.media?.length) return;
   let box=document.getElementById('photoLightbox');
   if(!box){
     box=document.createElement('div');
     box.id='photoLightbox';
     box.className='photo-lightbox';
-    box.innerHTML='<button type="button" class="photo-lightbox-close" aria-label="Close image">×</button><img alt="">';
+    box.innerHTML=`
+      <button type="button" class="photo-lightbox-close" aria-label="Close image">×</button>
+      <button type="button" class="lightbox-nav lightbox-prev" aria-label="Previous photo">‹</button>
+      <div class="lightbox-stage"><img alt=""><div class="lightbox-count"></div></div>
+      <button type="button" class="lightbox-nav lightbox-next" aria-label="Next photo">›</button>
+      <div class="lightbox-thumbs"></div>`;
     document.body.appendChild(box);
-    box.addEventListener('click',(e)=>{ if(e.target===box || e.target.closest('.photo-lightbox-close')) box.classList.remove('open'); });
+
+    box.querySelector('.photo-lightbox-close').addEventListener('click',()=>box.classList.remove('open'));
+    box.addEventListener('click',(e)=>{ if(e.target===box) box.classList.remove('open'); });
+    box.querySelector('.lightbox-prev').addEventListener('click',()=>showLightboxPhoto(activeMediaIndex-1));
+    box.querySelector('.lightbox-next').addEventListener('click',()=>showLightboxPhoto(activeMediaIndex+1));
+
+    let touchX=null;
+    box.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;},{passive:true});
+    box.addEventListener('touchend',e=>{
+      if(touchX===null) return;
+      const dx=e.changedTouches[0].clientX-touchX;
+      if(Math.abs(dx)>45) showLightboxPhoto(activeMediaIndex+(dx<0?1:-1));
+      touchX=null;
+    },{passive:true});
   }
-  const img=box.querySelector('img');
-  img.src=src;
-  img.alt=activeProduct.name;
+  showLightboxPhoto(index);
   box.classList.add('open');
+}
+
+function showLightboxPhoto(index){
+  const media=activeProduct.media || [];
+  if(!media.length) return;
+  activeMediaIndex=(index+media.length)%media.length;
+  const box=document.getElementById('photoLightbox');
+  if(!box) return;
+  box.querySelector('.lightbox-stage img').src=media[activeMediaIndex];
+  box.querySelector('.lightbox-stage img').alt=`${activeProduct.name} photo ${activeMediaIndex+1}`;
+  box.querySelector('.lightbox-count').textContent=`${activeMediaIndex+1} / ${media.length}`;
+  box.querySelector('.lightbox-thumbs').innerHTML=media.map((src,i)=>`
+    <button type="button" class="lightbox-thumb ${i===activeMediaIndex?'active':''}" data-index="${i}" aria-label="Open photo ${i+1}">
+      <img src="${src}" alt="" loading="lazy">
+    </button>`).join('');
+  box.querySelectorAll('.lightbox-thumb').forEach(btn=>btn.addEventListener('click',()=>showLightboxPhoto(Number(btn.dataset.index))));
+  renderDetailGallery(activeMediaIndex);
 }
 
 document.getElementById('openCheckout').addEventListener('click',()=>{
