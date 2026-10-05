@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Tasty Kitchen interaction checks</title>
+<style>body{font:14px system-ui;background:#f7efe3;color:#431117;margin:20px}button,select{font:inherit;padding:10px;margin:4px}iframe{display:block;border:1px solid #ccc;height:820px;background:white;max-width:none}#stage{overflow:auto;max-width:100%}pre{white-space:pre-wrap}header{position:sticky;top:0;background:#f7efe3;padding:10px;z-index:2}</style>
+<header><h1>Tasty Kitchen checks</h1><label>Viewport <select id="width"><option>360</option><option selected>390</option><option>430</option><option>768</option><option>1280</option></select></label><label><input id="reduce" type="checkbox"> Reduced motion fixture</label><button id="load">Load view</button><button id="run">Run interaction checks</button><button id="all">Run all widths + reduced motion</button><pre id="results" role="status"></pre></header><div id="stage"></div>
+<script>
+const result=document.getElementById('results');
+let frame;
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+const check=(ok,msg)=>{if(!ok)throw Error(msg);result.textContent+='PASS '+msg+'\n';};
+const root=new URL('../',location.href).href;
+async function load(width=Number(document.getElementById('width').value),reduce=document.getElementById('reduce').checked){
+ const [html,css,js]=await Promise.all(['index.html','styles.css','script.js'].map(p=>fetch(root+p).then(r=>r.text())));
+ frame=document.createElement('iframe');frame.title='Website at '+width+' pixels';frame.style.width=width+'px';document.getElementById('stage').replaceChildren(frame);
+ let style=css;
+ if(reduce)style=style.replaceAll('@media(prefers-reduced-motion:reduce)','@media all').replaceAll('@media(prefers-reduced-motion:no-preference)','@media not all');
+ let source=html.replace('<head>','<head><base href="'+root+'">').replace('<link rel="stylesheet" href="styles.css" />','<style>'+style+'</style>');
+ source=source.replace('<script src="script.js"></script>', '<script>window.__errors=[];addEventListener("error",e=>window.__errors.push(e.message));addEventListener("unhandledrejection",e=>window.__errors.push(String(e.reason)));'+(reduce?'window.matchMedia=()=>({matches:true,addEventListener(){}});':'')+js+'<\/script>');
+ const loaded=new Promise(resolve=>frame.onload=resolve);frame.srcdoc=source;await loaded;await pause(2100);return frame.contentDocument;
+}
+async function run(width,reduce=false){
+ result.textContent+='\n'+width+'px'+(reduce?' reduced motion':'')+'\n';
+ const d=await load(width,reduce),w=frame.contentWindow;
+ const click=selector=>{const el=d.querySelector(selector);check(!!el,'control '+selector+' exists');el.click();return el;};
+ const open=async()=>{click('[data-product="makhana-mewa-bites"]');await pause(850);};
+ check(d.documentElement.scrollWidth<=width,'homepage has no horizontal overflow');
+ check(d.querySelectorAll('.product-card').length===2,'both product cards render');
+ check(d.querySelector('.hero-product-frame img').naturalWidth>500,'hero photography loads in high resolution');
+ if(reduce){check(w.getComputedStyle(d.querySelector('.gift-lid')).display==='none','reduced motion skips lid');check(d.getAnimations().length===0,'reduced motion has no active animations');}
+ click('.hero-order-link');await pause(850);check(d.querySelector('#productLayer').classList.contains('is-open'),'hero product link opens details');
+ click('[data-close-product]');await pause(750);await open();
+ check(d.querySelectorAll('.detail-thumb').length===5,'five gallery thumbnails remain');
+ check(d.querySelector('main').inert,'background is inert while dialog opens');
+ check(d.querySelector('.product-sheet').scrollWidth<=d.querySelector('.product-sheet').clientWidth+1,'product sheet has no horizontal overflow');
+ click('.detail-thumb[data-index="2"]');await pause(500);check(d.querySelector('.gallery-caption').textContent.startsWith('3 / 5'),'thumbnail changes photo');
+ const surface=d.querySelector('.detail-photo-button');
+ const swipe=(el,x1,y1,x2,y2)=>{const start=new w.Event('touchstart',{bubbles:true});Object.defineProperty(start,'touches',{value:[{clientX:x1,clientY:y1}]});el.dispatchEvent(start);const end=new w.Event('touchend',{bubbles:true});Object.defineProperty(end,'changedTouches',{value:[{clientX:x2,clientY:y2}]});el.dispatchEvent(end);};
+ swipe(surface,250,200,100,205);await pause(500);check(d.querySelector('.gallery-caption').textContent.startsWith('4 / 5'),'horizontal detail swipe advances photo');
+ swipe(surface,150,100,120,250);await pause(100);check(d.querySelector('.gallery-caption').textContent.startsWith('4 / 5'),'vertical scroll does not change photo');
+ click('.detail-photo-button');await pause(500);check(d.querySelector('#photoLightbox').classList.contains('open'),'full-screen viewer opens');
+ click('.lightbox-next');await pause(500);check(d.querySelector('.lightbox-count').textContent.startsWith('5 / 5'),'viewer next works');
+ click('.lightbox-next');await pause(500);check(d.querySelector('.lightbox-count').textContent.startsWith('1 / 5'),'viewer wraps to first photo');
+ click('.lightbox-zoom');check(d.querySelector('#photoLightbox').classList.contains('is-zoomed'),'viewer zoom works');
+ click('.lightbox-zoom');swipe(d.querySelector('.lightbox-stage'),250,200,100,200);await pause(500);check(d.querySelector('.lightbox-count').textContent.startsWith('2 / 5'),'viewer swipe works');
+ w.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));check(!d.querySelector('#photoLightbox').classList.contains('open')&&d.querySelector('#productLayer').classList.contains('is-open'),'Escape closes viewer and keeps product');
+ for(const info of ['photos','ingredients','delivery','gifting']){click('[data-info="'+info+'"]');check(d.querySelector('#infoPanel').classList.contains('show'),'information panel '+info);}
+ click('[data-pack="1"]');check(d.querySelector('#detailPrice').textContent==='₹849','pack price updates');check(d.querySelector('#detailPack').textContent.includes('preview'),'preview price remains explicit');
+ click('#openCheckout');check(d.querySelector('#checkoutSummary').textContent.includes('400g'),'checkout retains selected pack');
+ const q=d.querySelector('#quantity');q.value='2';q.dispatchEvent(new w.Event('input'));check(d.querySelector('#checkoutTotal').textContent==='₹1,698','quantity updates total');
+ d.querySelector('#customerName').value='Preview Test';d.querySelector('#customerPhone').value='9999999999';d.querySelector('#customerAddress').value='Test address, Ahmedabad';d.querySelector('#deliveryDate').value=d.querySelector('#deliveryDate').min;
+ click('.checkout-pay');check(d.querySelector('#paymentLayer').classList.contains('is-open'),'payment preview opens');check(d.querySelector('#paymentSummary').textContent.includes('₹1,698'),'payment preview retains total');
+ click('[data-close-payment]');check(d.querySelector('#checkoutLayer').classList.contains('is-open'),'payment back retains checkout');
+ click('[data-close-checkout]');click('[data-close-product]');await pause(750);
+ click('[data-product="coconut-mewa-ladoo"]');await pause(850);check(d.querySelector('#detailDescription').textContent.includes('preview'),'Coconut product remains provisional');
+ click('[data-close-product]');await pause(750);
+ check(!w.__errors.length,'no JavaScript errors: '+w.__errors.join('; '));
+ check(d.querySelector('#productLayer').inert,'closed product is inert');
+ result.textContent+='COMPLETE '+width+'px\n';
+}
+document.getElementById('load').onclick=()=>load().catch(e=>result.textContent+='FAIL '+e.message);
+document.getElementById('run').onclick=async()=>{result.textContent='';try{await run(Number(document.getElementById('width').value),document.getElementById('reduce').checked);}catch(e){result.textContent+='FAIL '+e.stack;}};
+document.getElementById('all').onclick=async()=>{result.textContent='';try{for(const width of [360,390,430,768,1280])await run(width);await run(390,true);result.textContent+='ALL CHECKS PASSED';}catch(e){result.textContent+='FAIL '+e.stack;}};
+load();
+</script></html>
