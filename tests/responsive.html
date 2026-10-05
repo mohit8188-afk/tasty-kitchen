@@ -13,7 +13,7 @@ async function load(width=Number(document.getElementById('width').value),reduce=
  let style=css;
  if(reduce)style=style.replaceAll('@media(prefers-reduced-motion:reduce)','@media all').replaceAll('@media(prefers-reduced-motion:no-preference)','@media not all');
  let source=html.replace('<head>','<head><base href="'+root+'">').replace('<link rel="stylesheet" href="styles.css" />','<style>'+style+'</style>');
- source=source.replace('<script src="script.js"></script>', '<script>window.__errors=[];addEventListener("error",e=>window.__errors.push(e.message));addEventListener("unhandledrejection",e=>window.__errors.push(String(e.reason)));'+(reduce?'window.matchMedia=()=>({matches:true,addEventListener(){}});':'')+js+'<\/script>');
+ source=source.replace('<script src="script.js"><\/script>', '<script>window.__errors=[];addEventListener("error",e=>window.__errors.push(e.message));addEventListener("unhandledrejection",e=>window.__errors.push(String(e.reason)));'+(reduce?'window.matchMedia=()=>({matches:true,addEventListener(){}});':'')+js+'<\/script>');
  const loaded=new Promise(resolve=>frame.onload=resolve);frame.srcdoc=source;await loaded;await pause(2100);return frame.contentDocument;
 }
 async function run(width,reduce=false){
