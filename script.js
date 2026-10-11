@@ -308,12 +308,6 @@ function openProduct(id, sourceCard, push=true){
   },()=>{ if(sourceMedia) sourceMedia.style.viewTransitionName=''; detailMedia.style.viewTransitionName=''; });
   if(push) history.pushState({product:id},'', '#product/'+id);
   requestAnimationFrame(()=>watchPrimaryProductActions());
-  if(!mithuGuide?.classList.contains('is-hidden')){
-    setTimeout(()=>{
-      const target=productLayer.querySelector('.detail-content') || productLayer.querySelector('.product-sheet');
-      moveMithuJourney('product',target,'right',true);
-    },650);
-  }
 }
 
 let galleryRequest = 0;
@@ -440,7 +434,6 @@ function setMobileActionBar(visible){
 function watchPrimaryProductActions(){
   mobileActionObserver?.disconnect();
   setMobileActionBar(false);
-  if(mithuGuide?.classList.contains('is-open')) renderMithuScene('products',false);
   if(!mobileMedia.matches) return;
   const mainActions=productLayer.querySelector('.detail-actions');
   const scroller=productLayer.querySelector('.product-sheet');
@@ -587,12 +580,6 @@ async function showLightboxPhoto(index){
 
 function openSampleRequest(productId=activeProduct?.id){
   const layer=document.getElementById('sampleLayer');
-  if(!mithuGuide?.classList.contains('is-hidden')){
-    setTimeout(()=>{
-      const target=document.querySelector('#sampleLayer .sample-sheet');
-      moveMithuJourney('sample',target,'left',false);
-    },80);
-  }
   const product=PRODUCTS.find(p=>p.id===productId) || PRODUCTS[0];
   const sampleForm=document.getElementById('sampleForm');
   const success=document.getElementById('sampleSuccess');
@@ -696,9 +683,6 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     form.hidden=true;
     success.hidden=false;
     success.scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
-    if(!mithuGuide?.classList.contains('is-hidden')) setTimeout(()=>{
-      moveMithuJourney('sample_success',success,'right',true);
-    },350);
   }catch{
     sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
     showToast('Network issue. Your details are kept on this device; please try again.');
@@ -869,173 +853,6 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
 });
 
 
-
-const mithuGuide=document.getElementById('mithuGuide');
-const mithuAvatar=document.getElementById('mithuAvatar');
-const mithuBubble=document.getElementById('mithuBubble');
-const mithuMessage=document.getElementById('mithuMessage');
-const mithuActions=document.getElementById('mithuActions');
-const mithuClose=document.getElementById('mithuClose');
-const MITHU_HIDE_KEY='tkMithuHidden';
-let mithuContext='welcome';
-let mithuAutoTimer=0;
-
-const mithuScenes={
-  welcome:{
-    message:'Namaste! I’m Mithu. I can help you choose a sweet, request a free sample or place an order.',
-    actions:[['sample','Free sample'],['products','See sweets']],
-    mood:'happy'
-  },
-  products:{
-    message:'Three festive sweets, two pack sizes. Tap any sweet and I’ll stay nearby while you explore.',
-    actions:[['sample','Taste first'],['products','Browse sweets']],
-    mood:'curious'
-  },
-  product:{
-    message:'Choose 250g or 500g first. You can order now or taste it free in Ahmedabad + nearby.',
-    actions:[['sample','Request sample'],['order','Order this']],
-    mood:'point'
-  },
-  sample:{
-    message:'Free sample means ₹0 payment. Just share the basics first — address can be added after your Sample ID is created.',
-    actions:[['sample','Open sample form']],
-    mood:'happy'
-  },
-  sample_success:{
-    message:'Your sample request is in! Keep the TKS reference safe — that’s your tracking ID.',
-    actions:[['products','Explore more sweets']],
-    mood:'celebrate'
-  },
-  gifting:{
-    message:'Planning gifts for clients or a team? Share the rough quantity and we’ll confirm capacity before quoting.',
-    actions:[['gifting','Corporate gifting']],
-    mood:'point'
-  },
-  reviews:{
-    message:'Only verified customers can post reviews here. No fake testimonials — ever.',
-    actions:[['products','See sweets']],
-    mood:'happy'
-  }
-};
-
-function setMithuMood(mood='happy'){
-  if(!mithuGuide) return;
-  mithuGuide.dataset.mood=mood;
-}
-
-let mithuJourneyTarget=null;
-let mithuJourneySide='left';
-let mithuJourneyRaf=0;
-
-function positionMithuNear(target,side='left',immediate=false){
-  if(!mithuGuide || !target || !target.getBoundingClientRect) return;
-  mithuJourneyTarget=target;
-  mithuJourneySide=side;
-  const rect=target.getBoundingClientRect();
-  const mobile=window.matchMedia('(max-width:640px)').matches;
-  const avatarW=mobile?74:92;
-  const avatarH=mobile?86:106;
-  const pad=mobile?10:18;
-  const bubbleAllowance=mobile?0:40;
-
-  let x;
-  let y;
-
-  if(mobile){
-    // On mobile, stay clear of the core content but visibly travel with the journey.
-    const useRight=side==='right';
-    x=useRight ? window.innerWidth-avatarW-pad : pad;
-    const targetY=Math.min(window.innerHeight-avatarH-pad,Math.max(86,rect.top+Math.min(rect.height*.42,210)));
-    y=targetY;
-  }else{
-    const useRight=side==='right';
-    x=useRight
-      ? Math.min(window.innerWidth-avatarW-pad,rect.right+18)
-      : Math.max(pad,rect.left-avatarW-18);
-    if(useRight && x<rect.right+8) x=window.innerWidth-avatarW-pad;
-    if(!useRight && x>rect.left-avatarW-8) x=pad;
-    y=Math.min(window.innerHeight-avatarH-pad,Math.max(86,rect.top+Math.min(rect.height*.34,240)-bubbleAllowance));
-  }
-
-  mithuGuide.style.setProperty('--mithu-x',Math.round(x)+'px');
-  mithuGuide.style.setProperty('--mithu-y',Math.round(y)+'px');
-  mithuGuide.classList.toggle('mithu-right',side==='right');
-  mithuGuide.classList.toggle('mithu-left',side!=='right');
-  if(immediate){
-    mithuGuide.classList.add('mithu-no-travel');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>mithuGuide.classList.remove('mithu-no-travel')));
-  }
-}
-
-function queueMithuPosition(){
-  if(!mithuJourneyTarget || mithuJourneyRaf) return;
-  mithuJourneyRaf=requestAnimationFrame(()=>{
-    mithuJourneyRaf=0;
-    positionMithuNear(mithuJourneyTarget,mithuJourneySide);
-  });
-}
-
-function moveMithuJourney(sceneName,target,side='left',open=true){
-  if(!target || mithuGuide?.classList.contains('is-hidden')) return;
-  renderMithuScene(sceneName,open);
-  positionMithuNear(target,side);
-}
-function renderMithuScene(name,open=true){
-  const scene=mithuScenes[name]||mithuScenes.welcome;
-  mithuContext=name;
-  mithuMessage.textContent=scene.message;
-  mithuActions.innerHTML=scene.actions.map(([action,label])=>'<button type="button" data-mithu-action="'+action+'">'+label+'</button>').join('');
-  setMithuMood(scene.mood);
-  if(open) setMithuOpen(true,false);
-}
-function setMithuOpen(open,track=true){
-  if(!mithuGuide) return;
-  mithuGuide.classList.toggle('is-open',open);
-  mithuAvatar?.setAttribute('aria-expanded',String(open));
-  if(track && open) trackEvent('mascot_open',{metadata:{context:mithuContext}});
-}
-function hideMithu(){
-  localStorage.setItem(MITHU_HIDE_KEY,'1');
-  mithuGuide?.classList.add('is-hidden');
-}
-function showMithu(){
-  localStorage.removeItem(MITHU_HIDE_KEY);
-  mithuGuide?.classList.remove('is-hidden');
-}
-function handleMithuAction(action){
-  trackEvent('mascot_action',{metadata:{action,context:mithuContext}});
-  if(action==='sample'){
-    trackEvent('sample_form_start',{product_id:activeProduct?.id || PRODUCTS[0].id,metadata:{source:'mithu'}});
-    openSampleRequest(activeProduct?.id || PRODUCTS[0].id);
-  }else if(action==='products'){
-    document.getElementById('collection')?.scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
-    renderMithuScene('products',false);
-    setMithuOpen(false,false);
-  }else if(action==='order'){
-    if(activeProduct) document.getElementById('openCheckout')?.click();
-    else openProduct(PRODUCTS[0].id,document.querySelector('[data-product="'+PRODUCTS[0].id+'"]'));
-  }else if(action==='gifting'){
-    document.getElementById('corporate-gifting')?.scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
-    setMithuOpen(false,false);
-  }
-}
-mithuAvatar?.addEventListener('click',()=>{
-  if(mithuGuide.classList.contains('is-hidden')) showMithu();
-  setMithuOpen(!mithuGuide.classList.contains('is-open'));
-});
-mithuClose?.addEventListener('click',()=>setMithuOpen(false,false));
-mithuActions?.addEventListener('click',e=>{
-  const btn=e.target.closest('[data-mithu-action]');
-  if(btn) handleMithuAction(btn.dataset.mithuAction);
-});
-
-localStorage.removeItem(MITHU_HIDE_KEY);
-mithuGuide?.classList.remove('is-hidden');
-clearTimeout(mithuAutoTimer);
-mithuAutoTimer=setTimeout(()=>{
-  const heroTarget=document.querySelector('.hero-product-reveal') || document.querySelector('.hero');
-  moveMithuJourney('welcome',heroTarget,'left',true);
-},2200);
 
 const TK_REVIEW_SUBMIT_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-review-submit';
 const TK_PUBLIC_REVIEWS_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-public-reviews';
@@ -1241,18 +1058,6 @@ if('IntersectionObserver' in window){
   observer.observe(hero);
   revealTargets.forEach(el=>{el.classList.add('scroll-reveal');observer.observe(el);});
 
-  if(!localStorage.getItem(MITHU_HIDE_KEY)){
-    const guideObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
-      if(!entry.isIntersecting || productLayer.classList.contains('is-open') || document.getElementById('sampleLayer')?.classList.contains('is-open')) return;
-      if(entry.target.id==='corporate-gifting') moveMithuJourney('gifting',entry.target,'right',true);
-      else if(entry.target.id==='reviews') moveMithuJourney('reviews',entry.target,'left',true);
-      else if(entry.target.id==='collection') moveMithuJourney('products',entry.target,'right',true);
-    }),{threshold:.35});
-    ['collection','reviews','corporate-gifting'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el) guideObserver.observe(el);
-    });
-  }
 }
 let scrollFrame=0;
 function updateDepth(){
@@ -1261,11 +1066,7 @@ function updateDepth(){
   if(reducedMotion.matches || rect.bottom<=0 || document.hidden) return;
   hero.style.setProperty('--scroll-depth',`${Math.min(45,Math.max(0,-rect.top)*.065)}px`);
 }
-window.addEventListener('scroll',()=>{
-  if(!scrollFrame) scrollFrame=requestAnimationFrame(updateDepth);
-  queueMithuPosition();
-},{passive:true});
-window.addEventListener('resize',queueMithuPosition,{passive:true});
+window.addEventListener('scroll',()=>{if(!scrollFrame) scrollFrame=requestAnimationFrame(updateDepth);},{passive:true});
 document.addEventListener('visibilitychange',()=>hero.classList.toggle('motion-paused',document.hidden || hero.getBoundingClientRect().bottom<=0));
 reducedMotion.addEventListener('change',()=>{
   hero.style.setProperty('--scroll-depth','0px');
