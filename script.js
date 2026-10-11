@@ -664,7 +664,7 @@ document.getElementById('sampleAddressForm').addEventListener('submit',async e=>
   const success=document.getElementById('sampleSuccess');
   const submit=form.querySelector('button[type="submit"]');
   const address=document.getElementById('sampleAddress').value.trim().replace(/\s+/g,' ');
-  const pincode=document.getElementById('samplePin').value.trim();
+  const city=document.getElementById('sampleCity').value.trim().replace(/\s+/g,' ');
 
   if(address.length<8){
     document.getElementById('sampleAddress').setCustomValidity('Please enter enough address detail for delivery confirmation.');
@@ -685,14 +685,14 @@ document.getElementById('sampleAddressForm').addEventListener('submit',async e=>
         sample_ref:success.dataset.sampleRef,
         mobile:success.dataset.mobile,
         address,
-        pincode
+        city
       })
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok){
       const messages={
         address_sample_exists:'A free sample was already requested recently for this address/locality. Please use the existing request or wait for the sample window to reopen.',
-        outside_service_area:'This PIN code is not currently in our Ahmedabad sample route.',
+        invalid_city:'Please enter the delivery city.',
         sample_verification_failed:'We could not verify this Sample ID with the mobile number.'
       };
       showToast(messages[data.error] || data.message || 'We could not save the delivery address. Please try again.');
