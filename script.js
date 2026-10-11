@@ -89,15 +89,24 @@ const packOptions = document.getElementById('packOptions');
 const infoPanel = document.getElementById('infoPanel');
 const checkoutSummary = document.getElementById('checkoutSummary');
 const checkoutTotal = document.getElementById('checkoutTotal');
-const checkoutProductLine = document.getElementById('checkoutProductLine');
-const checkoutPackLine = document.getElementById('checkoutPackLine');
-const checkoutQtyLine = document.getElementById('checkoutQtyLine');
 const checkoutSubtotal = document.getElementById('checkoutSubtotal');
 const checkoutDelivery = document.getElementById('checkoutDelivery');
 const checkoutGrandTotal = document.getElementById('checkoutGrandTotal');
 const checkoutEstimate = document.getElementById('checkoutEstimate');
-const quantity = document.getElementById('quantity');
+const cartItemsEl = document.getElementById('cartItems');
+const cartCount = document.getElementById('cartCount');
 const toast = document.getElementById('toast');
+
+let cart = [];
+try{
+  const saved=JSON.parse(localStorage.getItem('tkCart') || '[]');
+  if(Array.isArray(saved)) cart=saved.filter(x=>x && x.productId && x.pack && Number(x.quantity)>0);
+}catch{}
+function saveCart(){
+  localStorage.setItem('tkCart',JSON.stringify(cart));
+  cartCount.textContent=String(cart.reduce((n,x)=>n+x.quantity,0));
+}
+saveCart();
 
 function money(n){ return n==null ? '' : '₹' + Number(n).toLocaleString('en-IN'); }
 
@@ -598,13 +607,73 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
   }
 });
 
-document.getElementById('openCheckout').addEventListener('click',()=>{
-  checkoutSummary.innerHTML=`<div class="checkout-product-art">${artSvg(activeProduct,'checkout')}</div><div><strong>${activeProduct.name} — ${activePack.label}</strong><span>${activePack.price==null?'':money(activePack.price)+' each'}${activePack.preview?' • preview':''} • 100% advance</span></div>`;
-  quantity.value=1;
-  updateTotal();
+function cartKey(productId,pack){ return productId+'|'+pack; }
+function addActiveToCart(){
+  const key=cartKey(activeProduct.id,activePack.label);
+  const existing=cart.find(x=>cartKey(x.productId,x.pack)===key);
+  if(existing) existing.quantity=Math.min(20,existing.quantity+1);
+  else cart.push({productId:activeProduct.id,pack:activePack.label,unitPrice:activePack.price,quantity:1});
+  saveCart();
+}
+function cartSubtotal(){
+  return cart.reduce((sum,item)=>sum+(Number(item.unitPrice)||0)*item.quantity,0);
+}
+function cartHasJalebi(){
+  return cart.some(item=>item.productId==='jalebi-with-rabdi');
+}
+function renderCart(){
+  if(!cart.length){
+    cartItemsEl.innerHTML='<div class="cart-empty">Your cart is empty. Add a sweet to continue.</div>';
+    checkoutSummary.innerHTML='<div><strong>Your festive cart</strong><span>Add one or more products before checkout.</span></div>';
+    checkoutSubtotal.textContent=money(0);
+    checkoutDelivery.textContent='FREE';
+    checkoutGrandTotal.textContent=money(0);
+    checkoutTotal.textContent=money(0);
+    return;
+  }
+  checkoutSummary.innerHTML=`<div><strong>Your festive cart</strong><span>${cart.length} item type${cart.length===1?'':'s'} • Free delivery • 100% advance</span></div>`;
+  cartItemsEl.innerHTML=cart.map((item,index)=>{
+    const product=PRODUCTS.find(p=>p.id===item.productId);
+    return `<div class="cart-line" data-cart-index="${index}">
+      <div class="cart-line-main"><strong>${product?.name || item.productId}</strong><span>${item.pack} • ${money(item.unitPrice)} each</span></div>
+      <div class="cart-qty" aria-label="Quantity controls">
+        <button type="button" data-cart-action="minus" aria-label="Decrease quantity">−</button>
+        <b>${item.quantity}</b>
+        <button type="button" data-cart-action="plus" aria-label="Increase quantity">+</button>
+        <button class="cart-remove" type="button" data-cart-action="remove">Remove</button>
+      </div>
+      <strong class="cart-line-total">${money(item.unitPrice*item.quantity)}</strong>
+    </div>`;
+  }).join('');
+  cartItemsEl.querySelectorAll('[data-cart-action]').forEach(btn=>btn.addEventListener('click',()=>{
+    const line=btn.closest('[data-cart-index]');
+    const idx=Number(line.dataset.cartIndex);
+    const action=btn.dataset.cartAction;
+    if(action==='plus') cart[idx].quantity=Math.min(20,cart[idx].quantity+1);
+    if(action==='minus') cart[idx].quantity=Math.max(1,cart[idx].quantity-1);
+    if(action==='remove') cart.splice(idx,1);
+    saveCart();renderCart();
+  }));
+  const subtotal=cartSubtotal();
+  checkoutSubtotal.textContent=money(subtotal);
+  checkoutDelivery.textContent='FREE';
+  checkoutGrandTotal.textContent=money(subtotal);
+  checkoutTotal.textContent=money(subtotal);
+  checkoutEstimate.textContent=cartHasJalebi()
+    ? 'Free delivery. Because your cart includes Desi Ghee Jalebi with Rabdi, the full order must be deliverable within Ahmedabad + nearby serviceable area.'
+    : 'Free delivery. Makhana Mewa Bites and Coconut Mewa Ladoo are available for India-wide delivery.';
+}
+function openCart(){
+  renderCart();
   setLayer(checkoutLayer,true);
   checkoutLayer.querySelector('.checkout-sheet').scrollTop=0;
+}
+document.getElementById('openCheckout').addEventListener('click',()=>{
+  addActiveToCart();
+  showToast(activeProduct.name+' added to cart.');
+  openCart();
 });
+document.getElementById('cartBtn')?.addEventListener('click',openCart);
 
 function closeCheckout(){
   if(!checkoutLayer.classList.contains('is-open')) return;
@@ -612,22 +681,6 @@ function closeCheckout(){
 }
 document.querySelectorAll('[data-close-checkout]').forEach(el=>el.addEventListener('click',closeCheckout));
 
-function updateTotal(){
-  const q=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));
-  const subtotal=activePack.price*q;
-  checkoutProductLine.textContent=activeProduct.name;
-  checkoutPackLine.textContent=activePack.label+' × '+money(activePack.price);
-  checkoutQtyLine.textContent=String(q);
-  checkoutSubtotal.textContent=money(subtotal);
-  checkoutDelivery.textContent='Confirmed after address';
-  checkoutGrandTotal.textContent=money(subtotal)+' + delivery';
-  checkoutTotal.textContent=money(subtotal);
-  checkoutEstimate.textContent=activeProduct.id==='jalebi-with-rabdi'
-    ? 'Ahmedabad + nearby delivery only. Preferred date is subject to route confirmation.'
-    : 'India-wide delivery available. Preferred date is subject to dispatch and route confirmation.';
-}
-quantity.addEventListener('input',updateTotal);
-quantity.addEventListener('change',()=>{quantity.value=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));updateTotal();});
 const date=new Date();date.setDate(date.getDate()+1);
 document.getElementById('deliveryDate').min=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 const paymentLayer=document.getElementById('paymentLayer');
@@ -637,14 +690,19 @@ document.querySelectorAll('[data-close-payment]').forEach(el=>el.addEventListene
 document.getElementById('checkoutForm').addEventListener('submit',e=>{
   e.preventDefault();
   if(!e.currentTarget.reportValidity()) return;
-  const q=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));
-  const subtotal=activePack.price*q;
+  if(!cart.length){ showToast('Your cart is empty. Please add a sweet first.'); return; }
+  const subtotal=cartSubtotal();
   const pin=document.getElementById('customerPin').value.trim();
+  const lines=cart.map(item=>{
+    const product=PRODUCTS.find(p=>p.id===item.productId);
+    return `<span>${product?.name || item.productId} • ${item.pack} × ${item.quantity} = ${money(item.unitPrice*item.quantity)}</span>`;
+  }).join('');
   document.getElementById('paymentSummary').innerHTML=`
-    <strong>${activeProduct.name} — ${activePack.label}</strong>
-    <span>${q} box(es) • Subtotal ${money(subtotal)}</span>
-    <span>Delivery charge: to be confirmed for PIN ${pin}</span>
-    <span>Final payable = subtotal + delivery charge</span>`;
+    <strong>${cart.length} product type${cart.length===1?'':'s'} in your order</strong>
+    ${lines}
+    <span>Delivery: FREE</span>
+    <span><b>Total payable: ${money(subtotal)}</b></span>
+    <span>Delivery PIN: ${pin}</span>`;
   setLayer(paymentLayer,true);
 });
 
