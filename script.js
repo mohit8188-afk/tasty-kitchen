@@ -580,7 +580,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
 
     sessionStorage.removeItem('tkSampleDraft');
     form.reset();
-    showToast('Sample request received. We will confirm availability before delivery.');
+    showToast('Sample request received. We will confirm the route and delivery slot before delivery.');
     setLayer(document.getElementById('sampleLayer'),false);
   }catch{
     sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
