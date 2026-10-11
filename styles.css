@@ -1561,3 +1561,61 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   }
   .mithu-guide,.mithu-bubble,.mithu-avatar{transition:none!important}
 }
+
+
+/* Mithu V2: travel with the customer journey */
+.mithu-guide{
+  left:0;
+  top:0;
+  bottom:auto;
+  transform:translate3d(var(--mithu-x,18px),var(--mithu-y,calc(100vh - 124px)),0);
+  transition:
+    transform .85s cubic-bezier(.2,.8,.2,1),
+    opacity .25s ease;
+  will-change:transform;
+}
+.mithu-guide.mithu-no-travel{transition:none!important}
+.mithu-guide.mithu-right{
+  flex-direction:row-reverse;
+}
+.mithu-guide.mithu-right .mithu-bubble{
+  border-radius:20px 20px 6px 20px;
+  transform:translateX(10px) translateY(8px) scale(.97);
+}
+.mithu-guide.mithu-right.is-open .mithu-bubble{transform:none}
+.mithu-guide.mithu-left .mithu-bubble{
+  border-radius:20px 20px 20px 6px;
+}
+.mithu-guide[data-mood="point"] .mithu-head{
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:mithuLook 1.6s ease-in-out infinite alternate;
+}
+.mithu-guide[data-mood="celebrate"] .mithu-float{
+  animation:mithuCelebrate .55s ease-in-out 4 alternate;
+}
+@keyframes mithuLook{
+  from{transform:rotate(-1deg) translateX(0)}
+  to{transform:rotate(2deg) translateX(2px)}
+}
+@keyframes mithuCelebrate{
+  from{transform:translateY(0) scale(1)}
+  to{transform:translateY(-7px) scale(1.035)}
+}
+@media(max-width:640px){
+  .mithu-guide{
+    left:0;
+    top:0;
+    bottom:auto;
+    transform:translate3d(var(--mithu-x,8px),var(--mithu-y,calc(100vh - 104px)),0);
+    transition:transform .65s cubic-bezier(.2,.8,.2,1),opacity .2s ease;
+  }
+  .mithu-guide.mithu-right .mithu-bubble{
+    border-radius:18px 18px 5px 18px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .mithu-guide{
+    transition:none!important;
+  }
+}
