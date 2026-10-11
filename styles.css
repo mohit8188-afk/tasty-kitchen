@@ -329,3 +329,37 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   .sample-note{align-items:flex-start;flex-direction:column}
   .sample-note span{text-align:left}
 }
+
+
+/* Conversion-first sample hero */
+.hero-sample-btn{
+  appearance:none;
+  border:0;
+  cursor:pointer;
+  box-shadow:0 16px 44px rgba(213,161,94,.18);
+}
+.hero-sample-note{
+  margin:4px 0 0;
+  font-size:11px;
+  line-height:1.5;
+  color:rgba(255,255,255,.58);
+}
+.sample-sheet select{
+  width:100%;
+  border:1px solid rgba(67,17,23,.16);
+  background:#fff;
+  border-radius:14px;
+  padding:13px 14px;
+  font:inherit;
+  color:#351015;
+  outline:none;
+}
+.sample-sheet select:focus{
+  border-color:#a66e36;
+  box-shadow:0 0 0 3px rgba(166,110,54,.1);
+}
+@media(max-width:640px){
+  .hero-actions .hero-sample-btn{width:100%}
+  .hero-actions .hero-order-link{width:100%;justify-content:center;margin-top:2px}
+  .hero-sample-note{text-align:center}
+}
