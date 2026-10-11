@@ -1118,3 +1118,27 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
     color:#431117;
   }
 }
+
+
+/* Point 27: image-loading performance */
+.hero-sweet-card,
+.product-art,
+.detail-photo-button,
+.photo-thumb,
+.detail-thumb{
+  overflow:hidden;
+}
+.hero-sweet-card img,
+.product-art img,
+.detail-photo-button img,
+.photo-thumb img,
+.detail-thumb img{
+  object-fit:cover;
+}
+.product-card{
+  content-visibility:auto;
+  contain-intrinsic-size:560px;
+}
+@media(max-width:640px){
+  .product-card{contain-intrinsic-size:500px}
+}
