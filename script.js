@@ -11,7 +11,7 @@ const PRODUCTS = [
       {label:'500g', price:770, preview:false}
     ],
     ingredients: ['Makhana','Dates','Cashew','Almond','Raisins','Desiccated coconut','Ghee','Limited added sugar'],
-    delivery: 'Delivery is planned across India. Free sample requests are available only within Ahmedabad. Final dispatch timelines and charges will be shown before launch.',
+    delivery: 'Free delivery across India. Free sample requests are limited to the Ahmedabad + nearby sample route. Dispatch timing is confirmed with the order.',
     gifting: 'Available for festive and corporate gifting in 250g and 500g boxes. Bulk pricing will be finalized before marketing launch.',
     colors: ['#401015','#7b2d37','#d4a15d'],
     media: [
@@ -36,7 +36,7 @@ const PRODUCTS = [
       {label:'500g', price:380, preview:false}
     ],
     ingredients: ['Coconut','Cashew','Almond','Raisins','Ghee','Final recipe to be confirmed'],
-    delivery: 'Delivery is planned across India. Free sample requests are available only within Ahmedabad.',
+    delivery: 'Free delivery across India. Free sample requests are limited to the Ahmedabad + nearby sample route.',
     gifting: 'Planned in premium 250g and 500g festive boxes. Final gifting presentation and bulk pricing will be approved before marketing launch.',
     colors: ['#5b241d','#b86e4a','#f1d8a9'],
     media: [
@@ -59,7 +59,7 @@ const PRODUCTS = [
       {label:'500g', price:940, preview:false}
     ],
     ingredients: ['Desi ghee jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
-    delivery: 'Desi Ghee Jalebi with Rabdi is available for delivery only within Ahmedabad and nearby serviceable areas. Free sample requests are also limited to the Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery for Desi Ghee Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Free sample requests use the same Ahmedabad + nearby sample route.',
     gifting: '250g and 500g packaging is planned. Final presentation and delivery method are still under testing.',
     colors: ['#5a210d','#c76a13','#f4c56a'],
     media: [
