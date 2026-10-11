@@ -964,3 +964,64 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   font-size:11px;
   line-height:1.5;
 }
+
+
+/* Point 24: mobile product hierarchy — get primary actions above secondary detail cards */
+@media(max-width:640px){
+  .product-sheet{
+    inset:6px;
+    border-radius:22px;
+  }
+  .detail-media{
+    height:clamp(230px,34dvh,320px);
+    min-height:230px;
+  }
+  .detail-content{
+    display:flex;
+    flex-direction:column;
+    padding:22px 18px 24px;
+  }
+  .detail-topline{order:1}
+  .detail-content>h2{
+    order:2;
+    margin:5px 0 10px;
+    font-size:clamp(36px,10vw,46px);
+  }
+  .detail-description{
+    order:3;
+    margin:0;
+    line-height:1.5;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .detail-price{
+    order:4;
+    margin:14px 0 10px;
+  }
+  .detail-price strong{font-size:34px}
+  .pack-block{order:5}
+  .detail-actions{
+    order:6;
+    position:static;
+    width:100%;
+    margin:14px 0 16px;
+    padding:0;
+    background:none;
+    gap:8px;
+  }
+  .detail-actions .primary-btn,
+  .detail-actions .sample-btn{
+    width:100%;
+  }
+  .capacity-note{
+    margin-top:1px;
+    text-align:left;
+  }
+  .detail-info-grid{
+    order:7;
+    margin:4px 0 10px;
+  }
+  .info-panel{order:8}
+}
