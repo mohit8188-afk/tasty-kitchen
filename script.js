@@ -103,6 +103,35 @@ const cartItemsEl = document.getElementById('cartItems');
 const cartCount = document.getElementById('cartCount');
 const toast = document.getElementById('toast');
 
+const TK_ANALYTICS_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-analytics';
+let analyticsSession=sessionStorage.getItem('tkAnalyticsSession');
+if(!analyticsSession){
+  analyticsSession=(crypto?.randomUUID?.() || ('tk-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+  sessionStorage.setItem('tkAnalyticsSession',analyticsSession);
+}
+function trackEvent(eventName, extra={}){
+  const qs=new URLSearchParams(location.search);
+  const payload={
+    event_name:eventName,
+    session_id:analyticsSession,
+    page_path:location.pathname+location.hash,
+    product_id:extra.product_id || activeProduct?.id || null,
+    metadata:extra.metadata || {},
+    utm_source:qs.get('utm_source'),
+    utm_medium:qs.get('utm_medium'),
+    utm_campaign:qs.get('utm_campaign'),
+    utm_content:qs.get('utm_content'),
+    referrer:document.referrer || null
+  };
+  fetch(TK_ANALYTICS_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload),
+    keepalive:true
+  }).catch(()=>{});
+}
+trackEvent('page_view');
+
 let cart = [];
 try{
   const saved=JSON.parse(localStorage.getItem('tkCart') || '[]');
@@ -264,6 +293,7 @@ function openProduct(id, sourceCard, push=true){
   if(productLayer.classList.contains('is-open') && activeProduct===product) return;
   activeProduct = product;
   activePack = product.packs[0];
+  trackEvent('product_open',{product_id:product.id});
   productTrigger=sourceCard || document.querySelector(`[data-product="${id}"]`);
   const sourceMedia = sourceCard?.querySelector('[data-card-media]');
   pendingTransition?.skipTransition();
@@ -528,8 +558,8 @@ function openSampleRequest(productId=activeProduct?.id){
   setLayer(layer,true);
   layer.querySelector('.sample-sheet').scrollTop=0;
 }
-document.getElementById('openSample').addEventListener('click',()=>openSampleRequest(activeProduct.id));
-document.getElementById('heroSampleBtn')?.addEventListener('click',()=>openSampleRequest(PRODUCTS[0].id));
+document.getElementById('openSample').addEventListener('click',()=>{trackEvent('sample_form_start',{product_id:activeProduct.id});openSampleRequest(activeProduct.id);});
+document.getElementById('heroSampleBtn')?.addEventListener('click',()=>{trackEvent('hero_sample_click',{product_id:PRODUCTS[0].id});trackEvent('sample_form_start',{product_id:PRODUCTS[0].id});openSampleRequest(PRODUCTS[0].id);});
 document.getElementById('sampleSweet')?.addEventListener('change',e=>{
   const product=PRODUCTS.find(p=>p.id===e.target.value);
   if(product) document.getElementById('sampleProduct').textContent=product.name;
@@ -603,6 +633,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     }
 
     sessionStorage.removeItem('tkSampleDraft');
+    trackEvent('sample_submit_success',{product_id:payload.product_id,metadata:{sample_ref:data.sample_ref || null}});
     form.reset();
     showToast('Sample request received. Reference: '+(data.sample_ref || data.request_id)+'. We will confirm the route and delivery slot before delivery.');
     setLayer(document.getElementById('sampleLayer'),false);
@@ -677,11 +708,13 @@ function openCart(){
   checkoutLayer.querySelector('.checkout-sheet').scrollTop=0;
 }
 document.getElementById('openCheckout').addEventListener('click',()=>{
+  trackEvent('order_click',{product_id:activeProduct.id,metadata:{pack:activePack.label,unit_price:activePack.price}});
   addActiveToCart();
   showToast(activeProduct.name+' added to cart.');
+  trackEvent('checkout_start',{metadata:{cart_items:cart.length,subtotal:cartSubtotal()}});
   openCart();
 });
-document.getElementById('cartBtn')?.addEventListener('click',openCart);
+document.getElementById('cartBtn')?.addEventListener('click',()=>{trackEvent('checkout_start',{metadata:{cart_items:cart.length,subtotal:cartSubtotal(),source:'cart_button'}});openCart();});
 
 function closeCheckout(){
   if(!checkoutLayer.classList.contains('is-open')) return;
