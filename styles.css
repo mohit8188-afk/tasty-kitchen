@@ -882,3 +882,85 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   .trust-card{min-height:auto}
   .origin-card{padding:26px;min-height:auto}
 }
+
+
+/* Points 21 & 22: short sample form + request confirmation */
+.sample-success{
+  padding:10px 2px 4px;
+  text-align:left;
+}
+.sample-success-mark{
+  display:grid;
+  place-items:center;
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  margin-bottom:14px;
+  background:#f1e4c9;
+  color:#5a1820;
+  font-weight:800;
+  font-size:22px;
+}
+.sample-success h3{
+  margin:6px 0 16px;
+  font-family:"Playfair Display",serif;
+  font-size:clamp(28px,5vw,42px);
+  line-height:1.02;
+  color:#321215;
+}
+.sample-reference,
+.sample-status-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:12px 14px;
+  border:1px solid rgba(67,17,23,.10);
+  background:rgba(255,255,255,.72);
+}
+.sample-reference{border-radius:16px 16px 0 0}
+.sample-status-line{border-top:0;border-radius:0 0 16px 16px}
+.sample-reference span,
+.sample-status-line span{
+  font-size:11px;
+  color:#7c625f;
+}
+.sample-reference strong{
+  font-size:15px;
+  letter-spacing:.03em;
+  color:#431117;
+}
+.sample-status-line strong{
+  font-size:12px;
+  text-align:right;
+  color:#431117;
+}
+#sampleSuccessMessage{
+  margin:16px 0;
+  color:#705855;
+  line-height:1.55;
+  font-size:13px;
+}
+.sample-address-toggle{
+  width:100%;
+  margin:4px 0 12px;
+}
+#sampleAddressForm{
+  display:grid;
+  gap:12px;
+  padding:14px;
+  margin-top:8px;
+  border:1px solid rgba(67,17,23,.10);
+  border-radius:18px;
+  background:rgba(255,255,255,.66);
+}
+#sampleAddressForm[hidden],
+.sample-success[hidden]{
+  display:none !important;
+}
+.sample-success-note{
+  margin:12px 0 0;
+  color:#7c625f;
+  font-size:11px;
+  line-height:1.5;
+}
