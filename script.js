@@ -930,6 +930,64 @@ document.getElementById('reviewForm')?.addEventListener('submit',async e=>{
 
 loadPublicReviews();
 
+
+const TK_GIFTING_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-gifting-inquiry';
+
+document.getElementById('giftingForm')?.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const form=e.currentTarget;
+  if(!form.reportValidity()) return;
+
+  const selected=[...document.querySelectorAll('input[name="giftingProduct"]:checked')].map(x=>x.value);
+  const status=document.getElementById('giftingStatus');
+  if(!selected.length){
+    status.textContent='Please choose at least one product you are considering.';
+    return;
+  }
+
+  const qs=new URLSearchParams(location.search);
+  const payload={
+    name:document.getElementById('giftingName').value.trim(),
+    mobile:document.getElementById('giftingMobile').value.trim(),
+    business_name:document.getElementById('giftingBusiness').value.trim(),
+    city:document.getElementById('giftingCity').value.trim(),
+    quantity_range:document.getElementById('giftingQuantity').value,
+    product_interest:selected,
+    requirement_notes:document.getElementById('giftingNotes').value.trim(),
+    source:'website',
+    utm_source:qs.get('utm_source'),
+    utm_medium:qs.get('utm_medium'),
+    utm_campaign:qs.get('utm_campaign'),
+    utm_content:qs.get('utm_content')
+  };
+
+  const submit=form.querySelector('button[type="submit"]');
+  const original=submit.textContent;
+  submit.disabled=true;
+  submit.textContent='Sending enquiry…';
+
+  try{
+    const res=await fetch(TK_GIFTING_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){
+      status.textContent=data.message || 'We could not submit the gifting enquiry. Please check the details and try again.';
+      return;
+    }
+    form.reset();
+    status.innerHTML='Enquiry received. Reference: <strong>'+escapeHtml(data.gifting_ref)+'</strong>. We’ll confirm capacity, packaging and delivery feasibility before sharing a quote.';
+    showToast('Corporate gifting enquiry received: '+data.gifting_ref);
+  }catch{
+    status.textContent='Network issue. Please try again or contact us on WhatsApp.';
+  }finally{
+    submit.disabled=false;
+    submit.textContent=original;
+  }
+});
+
 document.getElementById('whatsappFab').addEventListener('click',()=>{
   // Direct WhatsApp entry; AI automation will be layered onto the same business number later.
 });
