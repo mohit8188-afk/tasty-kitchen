@@ -308,6 +308,9 @@ function openProduct(id, sourceCard, push=true){
   },()=>{ if(sourceMedia) sourceMedia.style.viewTransitionName=''; detailMedia.style.viewTransitionName=''; });
   if(push) history.pushState({product:id},'', '#product/'+id);
   requestAnimationFrame(()=>watchPrimaryProductActions());
+  if(!mithuGuide?.classList.contains('is-hidden')){
+    setTimeout(()=>renderMithuScene('product',true),650);
+  }
 }
 
 let galleryRequest = 0;
@@ -434,6 +437,7 @@ function setMobileActionBar(visible){
 function watchPrimaryProductActions(){
   mobileActionObserver?.disconnect();
   setMobileActionBar(false);
+  if(mithuGuide?.classList.contains('is-open')) renderMithuScene('products',false);
   if(!mobileMedia.matches) return;
   const mainActions=productLayer.querySelector('.detail-actions');
   const scroller=productLayer.querySelector('.product-sheet');
@@ -580,6 +584,7 @@ async function showLightboxPhoto(index){
 
 function openSampleRequest(productId=activeProduct?.id){
   const layer=document.getElementById('sampleLayer');
+  if(!mithuGuide?.classList.contains('is-hidden')) renderMithuScene('sample',false);
   const product=PRODUCTS.find(p=>p.id===productId) || PRODUCTS[0];
   const sampleForm=document.getElementById('sampleForm');
   const success=document.getElementById('sampleSuccess');
@@ -683,6 +688,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     form.hidden=true;
     success.hidden=false;
     success.scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
+    if(!mithuGuide?.classList.contains('is-hidden')) setTimeout(()=>renderMithuScene('sample_success',true),350);
   }catch{
     sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
     showToast('Network issue. Your details are kept on this device; please try again.');
@@ -852,6 +858,115 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
   setLayer(paymentLayer,true);
 });
 
+
+
+const mithuGuide=document.getElementById('mithuGuide');
+const mithuAvatar=document.getElementById('mithuAvatar');
+const mithuBubble=document.getElementById('mithuBubble');
+const mithuMessage=document.getElementById('mithuMessage');
+const mithuActions=document.getElementById('mithuActions');
+const mithuClose=document.getElementById('mithuClose');
+const MITHU_HIDE_KEY='tkMithuHidden';
+let mithuContext='welcome';
+let mithuAutoTimer=0;
+
+const mithuScenes={
+  welcome:{
+    message:'Namaste! I’m Mithu. I can help you choose a sweet, request a free sample or place an order.',
+    actions:[['sample','Free sample'],['products','See sweets']],
+    mood:'happy'
+  },
+  products:{
+    message:'Three festive sweets, two pack sizes. Tap any sweet and I’ll stay nearby while you explore.',
+    actions:[['sample','Taste first'],['products','Browse sweets']],
+    mood:'curious'
+  },
+  product:{
+    message:'Choose 250g or 500g first. You can order now or taste it free in Ahmedabad + nearby.',
+    actions:[['sample','Request sample'],['order','Order this']],
+    mood:'point'
+  },
+  sample:{
+    message:'Free sample means ₹0 payment. Just share the basics first — address can be added after your Sample ID is created.',
+    actions:[['sample','Open sample form']],
+    mood:'happy'
+  },
+  sample_success:{
+    message:'Your sample request is in! Keep the TKS reference safe — that’s your tracking ID.',
+    actions:[['products','Explore more sweets']],
+    mood:'celebrate'
+  },
+  gifting:{
+    message:'Planning gifts for clients or a team? Share the rough quantity and we’ll confirm capacity before quoting.',
+    actions:[['gifting','Corporate gifting']],
+    mood:'point'
+  },
+  reviews:{
+    message:'Only verified customers can post reviews here. No fake testimonials — ever.',
+    actions:[['products','See sweets']],
+    mood:'happy'
+  }
+};
+
+function setMithuMood(mood='happy'){
+  if(!mithuGuide) return;
+  mithuGuide.dataset.mood=mood;
+}
+function renderMithuScene(name,open=true){
+  const scene=mithuScenes[name]||mithuScenes.welcome;
+  mithuContext=name;
+  mithuMessage.textContent=scene.message;
+  mithuActions.innerHTML=scene.actions.map(([action,label])=>'<button type="button" data-mithu-action="'+action+'">'+label+'</button>').join('');
+  setMithuMood(scene.mood);
+  if(open) setMithuOpen(true,false);
+}
+function setMithuOpen(open,track=true){
+  if(!mithuGuide) return;
+  mithuGuide.classList.toggle('is-open',open);
+  mithuAvatar?.setAttribute('aria-expanded',String(open));
+  if(track && open) trackEvent('mascot_open',{metadata:{context:mithuContext}});
+}
+function hideMithu(){
+  localStorage.setItem(MITHU_HIDE_KEY,'1');
+  mithuGuide?.classList.add('is-hidden');
+}
+function showMithu(){
+  localStorage.removeItem(MITHU_HIDE_KEY);
+  mithuGuide?.classList.remove('is-hidden');
+}
+function handleMithuAction(action){
+  trackEvent('mascot_action',{metadata:{action,context:mithuContext}});
+  if(action==='sample'){
+    trackEvent('sample_form_start',{product_id:activeProduct?.id || PRODUCTS[0].id,metadata:{source:'mithu'}});
+    openSampleRequest(activeProduct?.id || PRODUCTS[0].id);
+  }else if(action==='products'){
+    document.getElementById('products')?.scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
+    renderMithuScene('products',false);
+    setMithuOpen(false,false);
+  }else if(action==='order'){
+    if(activeProduct) document.getElementById('openCheckout')?.click();
+    else openProduct(PRODUCTS[0].id,document.querySelector('[data-product="'+PRODUCTS[0].id+'"]'));
+  }else if(action==='gifting'){
+    document.getElementById('corporate-gifting')?.scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
+    setMithuOpen(false,false);
+  }
+}
+mithuAvatar?.addEventListener('click',()=>{
+  if(mithuGuide.classList.contains('is-hidden')) showMithu();
+  setMithuOpen(!mithuGuide.classList.contains('is-open'));
+});
+mithuClose?.addEventListener('click',hideMithu);
+mithuActions?.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-mithu-action]');
+  if(btn) handleMithuAction(btn.dataset.mithuAction);
+});
+
+if(localStorage.getItem(MITHU_HIDE_KEY)==='1'){
+  mithuGuide?.classList.add('is-hidden');
+}else{
+  clearTimeout(mithuAutoTimer);
+  mithuAutoTimer=setTimeout(()=>renderMithuScene('welcome',true),2200);
+}
 
 const TK_REVIEW_SUBMIT_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-review-submit';
 const TK_PUBLIC_REVIEWS_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-public-reviews';
@@ -1048,7 +1163,7 @@ document.querySelectorAll('[data-hero-product]').forEach(card=>{
 
 // One observer drives entry reveals and pauses ambient motion outside the viewport.
 const hero=document.querySelector('.hero');
-const revealTargets=document.querySelectorAll('.section-head,.product-card,.future-note,.trust-copy,.trust-card,.origin-card');
+const revealTargets=document.querySelectorAll('.section-head,.product-card,.future-note,.trust-copy,.trust-card,.origin-card,.review-capture,.gifting-inner');
 if('IntersectionObserver' in window){
   const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
     if(entry.target===hero) hero.classList.toggle('motion-paused',!entry.isIntersecting || document.hidden);
@@ -1056,6 +1171,19 @@ if('IntersectionObserver' in window){
   }),{threshold:.12});
   observer.observe(hero);
   revealTargets.forEach(el=>{el.classList.add('scroll-reveal');observer.observe(el);});
+
+  if(!localStorage.getItem(MITHU_HIDE_KEY)){
+    const guideObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      if(!entry.isIntersecting || productLayer.classList.contains('is-open') || document.getElementById('sampleLayer')?.classList.contains('is-open')) return;
+      if(entry.target.id==='corporate-gifting') renderMithuScene('gifting',true);
+      else if(entry.target.id==='reviews') renderMithuScene('reviews',true);
+      else if(entry.target.id==='products') renderMithuScene('products',true);
+    }),{threshold:.35});
+    ['products','reviews','corporate-gifting'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) guideObserver.observe(el);
+    });
+  }
 }
 let scrollFrame=0;
 function updateDepth(){
