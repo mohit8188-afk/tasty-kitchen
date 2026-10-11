@@ -12,7 +12,7 @@ const PRODUCTS = [
     ],
     ingredients: ['Makhana','Dates','Cashew','Almond','Raisins','Desiccated coconut','Ghee','Limited added sugar'],
     delivery: 'Free delivery across India. Free sample requests are limited to the Ahmedabad + nearby sample route. Dispatch timing is confirmed with the order.',
-    gifting: 'Available for festive and corporate gifting in 250g and 500g boxes. Bulk pricing will be finalized before marketing launch.',
+    gifting: 'Available in 250g and 500g festive boxes. For larger gifting quantities, contact Tasty Kitchen for availability.',
     colors: ['#401015','#7b2d37','#d4a15d'],
     media: [
       'assets/makhana-hero-hires.webp',
@@ -37,7 +37,7 @@ const PRODUCTS = [
     ],
     ingredients: ['Coconut','Cashew','Almond','Raisins','Ghee','Final recipe to be confirmed'],
     delivery: 'Free delivery across India. Free sample requests are limited to the Ahmedabad + nearby sample route.',
-    gifting: 'Planned in premium 250g and 500g festive boxes. Final gifting presentation and bulk pricing will be approved before marketing launch.',
+    gifting: 'Available in 250g and 500g festive boxes. Larger gifting quantities are subject to availability.',
     colors: ['#5b241d','#b86e4a','#f1d8a9'],
     media: [
       'assets/coconut-1.webp',
@@ -60,7 +60,7 @@ const PRODUCTS = [
     ],
     ingredients: ['Desi ghee jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
     delivery: 'Free delivery for Desi Ghee Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Free sample requests use the same Ahmedabad + nearby sample route.',
-    gifting: '250g and 500g packaging is planned. Final presentation and delivery method are still under testing.',
+    gifting: 'Available in 250g and 500g packs for Ahmedabad + nearby serviceable areas.',
     colors: ['#5a210d','#c76a13','#f4c56a'],
     media: [
       'assets/jalebi-1.webp',
@@ -412,7 +412,7 @@ document.querySelectorAll('.info-card').forEach(btn=>{
       if(activeProduct.media?.length){
         html='<div class="photo-gallery-head"><strong>Product photos</strong><span>Tap any photo to view it above. Tap the large photo to open full-screen.</span></div><div class="photo-grid">'+activeProduct.media.map((src,i)=>'<button type="button" class="photo-thumb '+(i===0?'active':'')+'" data-photo="'+src+'" aria-label="View '+activeProduct.name+' photo '+(i+1)+'"><img src="'+src+'" alt="'+activeProduct.name+' photo '+(i+1)+'" loading="lazy" decoding="async"></button>').join('')+'</div>';
       }else{
-        html='<p><strong>Photos</strong><br>Product photography will be added after this sweet is finalized.</p>';
+        html='<p><strong>Photos</strong><br>Additional product photos are not available yet.</p>';
       }
     }
     infoPanel.innerHTML=html;
@@ -708,7 +708,7 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
 
 document.getElementById('whatsappFab').addEventListener('click',e=>{
   e.preventDefault();
-  showToast('WhatsApp + AI assistant will be connected before launch.');
+  showToast('WhatsApp support is not available yet.');
 });
 
 function showToast(message){
