@@ -309,7 +309,10 @@ function openProduct(id, sourceCard, push=true){
   if(push) history.pushState({product:id},'', '#product/'+id);
   requestAnimationFrame(()=>watchPrimaryProductActions());
   if(!mithuGuide?.classList.contains('is-hidden')){
-    setTimeout(()=>renderMithuScene('product',true),650);
+    setTimeout(()=>{
+      const target=productLayer.querySelector('.detail-content') || productLayer.querySelector('.product-sheet');
+      moveMithuJourney('product',target,'right',true);
+    },650);
   }
 }
 
@@ -584,7 +587,12 @@ async function showLightboxPhoto(index){
 
 function openSampleRequest(productId=activeProduct?.id){
   const layer=document.getElementById('sampleLayer');
-  if(!mithuGuide?.classList.contains('is-hidden')) renderMithuScene('sample',false);
+  if(!mithuGuide?.classList.contains('is-hidden')){
+    setTimeout(()=>{
+      const target=document.querySelector('#sampleLayer .sample-sheet');
+      moveMithuJourney('sample',target,'left',false);
+    },80);
+  }
   const product=PRODUCTS.find(p=>p.id===productId) || PRODUCTS[0];
   const sampleForm=document.getElementById('sampleForm');
   const success=document.getElementById('sampleSuccess');
@@ -688,7 +696,9 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     form.hidden=true;
     success.hidden=false;
     success.scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
-    if(!mithuGuide?.classList.contains('is-hidden')) setTimeout(()=>renderMithuScene('sample_success',true),350);
+    if(!mithuGuide?.classList.contains('is-hidden')) setTimeout(()=>{
+      moveMithuJourney('sample_success',success,'right',true);
+    },350);
   }catch{
     sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
     showToast('Network issue. Your details are kept on this device; please try again.');
@@ -912,6 +922,64 @@ function setMithuMood(mood='happy'){
   if(!mithuGuide) return;
   mithuGuide.dataset.mood=mood;
 }
+
+let mithuJourneyTarget=null;
+let mithuJourneySide='left';
+let mithuJourneyRaf=0;
+
+function positionMithuNear(target,side='left',immediate=false){
+  if(!mithuGuide || !target || !target.getBoundingClientRect) return;
+  mithuJourneyTarget=target;
+  mithuJourneySide=side;
+  const rect=target.getBoundingClientRect();
+  const mobile=window.matchMedia('(max-width:640px)').matches;
+  const avatarW=mobile?74:92;
+  const avatarH=mobile?86:106;
+  const pad=mobile?10:18;
+  const bubbleAllowance=mobile?0:40;
+
+  let x;
+  let y;
+
+  if(mobile){
+    // On mobile, stay clear of the core content but visibly travel with the journey.
+    const useRight=side==='right';
+    x=useRight ? window.innerWidth-avatarW-pad : pad;
+    const targetY=Math.min(window.innerHeight-avatarH-pad,Math.max(86,rect.top+Math.min(rect.height*.42,210)));
+    y=targetY;
+  }else{
+    const useRight=side==='right';
+    x=useRight
+      ? Math.min(window.innerWidth-avatarW-pad,rect.right+18)
+      : Math.max(pad,rect.left-avatarW-18);
+    if(useRight && x<rect.right+8) x=window.innerWidth-avatarW-pad;
+    if(!useRight && x>rect.left-avatarW-8) x=pad;
+    y=Math.min(window.innerHeight-avatarH-pad,Math.max(86,rect.top+Math.min(rect.height*.34,240)-bubbleAllowance));
+  }
+
+  mithuGuide.style.setProperty('--mithu-x',Math.round(x)+'px');
+  mithuGuide.style.setProperty('--mithu-y',Math.round(y)+'px');
+  mithuGuide.classList.toggle('mithu-right',side==='right');
+  mithuGuide.classList.toggle('mithu-left',side!=='right');
+  if(immediate){
+    mithuGuide.classList.add('mithu-no-travel');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>mithuGuide.classList.remove('mithu-no-travel')));
+  }
+}
+
+function queueMithuPosition(){
+  if(!mithuJourneyTarget || mithuJourneyRaf) return;
+  mithuJourneyRaf=requestAnimationFrame(()=>{
+    mithuJourneyRaf=0;
+    positionMithuNear(mithuJourneyTarget,mithuJourneySide);
+  });
+}
+
+function moveMithuJourney(sceneName,target,side='left',open=true){
+  if(!target || mithuGuide?.classList.contains('is-hidden')) return;
+  renderMithuScene(sceneName,open);
+  positionMithuNear(target,side);
+}
 function renderMithuScene(name,open=true){
   const scene=mithuScenes[name]||mithuScenes.welcome;
   mithuContext=name;
@@ -964,7 +1032,10 @@ mithuActions?.addEventListener('click',e=>{
 localStorage.removeItem(MITHU_HIDE_KEY);
 mithuGuide?.classList.remove('is-hidden');
 clearTimeout(mithuAutoTimer);
-mithuAutoTimer=setTimeout(()=>renderMithuScene('welcome',true),2200);
+mithuAutoTimer=setTimeout(()=>{
+  const heroTarget=document.querySelector('.hero-product-reveal') || document.querySelector('.hero');
+  moveMithuJourney('welcome',heroTarget,'left',true);
+},2200);
 
 const TK_REVIEW_SUBMIT_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-review-submit';
 const TK_PUBLIC_REVIEWS_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-public-reviews';
@@ -1173,9 +1244,9 @@ if('IntersectionObserver' in window){
   if(!localStorage.getItem(MITHU_HIDE_KEY)){
     const guideObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
       if(!entry.isIntersecting || productLayer.classList.contains('is-open') || document.getElementById('sampleLayer')?.classList.contains('is-open')) return;
-      if(entry.target.id==='corporate-gifting') renderMithuScene('gifting',true);
-      else if(entry.target.id==='reviews') renderMithuScene('reviews',true);
-      else if(entry.target.id==='collection') renderMithuScene('products',true);
+      if(entry.target.id==='corporate-gifting') moveMithuJourney('gifting',entry.target,'right',true);
+      else if(entry.target.id==='reviews') moveMithuJourney('reviews',entry.target,'left',true);
+      else if(entry.target.id==='collection') moveMithuJourney('products',entry.target,'right',true);
     }),{threshold:.35});
     ['collection','reviews','corporate-gifting'].forEach(id=>{
       const el=document.getElementById(id);
@@ -1190,7 +1261,11 @@ function updateDepth(){
   if(reducedMotion.matches || rect.bottom<=0 || document.hidden) return;
   hero.style.setProperty('--scroll-depth',`${Math.min(45,Math.max(0,-rect.top)*.065)}px`);
 }
-window.addEventListener('scroll',()=>{if(!scrollFrame) scrollFrame=requestAnimationFrame(updateDepth);},{passive:true});
+window.addEventListener('scroll',()=>{
+  if(!scrollFrame) scrollFrame=requestAnimationFrame(updateDepth);
+  queueMithuPosition();
+},{passive:true});
+window.addEventListener('resize',queueMithuPosition,{passive:true});
 document.addEventListener('visibilitychange',()=>hero.classList.toggle('motion-paused',document.hidden || hero.getBoundingClientRect().bottom<=0));
 reducedMotion.addEventListener('change',()=>{
   hero.style.setProperty('--scroll-depth','0px');
