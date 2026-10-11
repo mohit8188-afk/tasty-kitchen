@@ -540,6 +540,14 @@ async function showLightboxPhoto(index){
 function openSampleRequest(productId=activeProduct?.id){
   const layer=document.getElementById('sampleLayer');
   const product=PRODUCTS.find(p=>p.id===productId) || PRODUCTS[0];
+  const sampleForm=document.getElementById('sampleForm');
+  const success=document.getElementById('sampleSuccess');
+  sampleForm.hidden=false;
+  success.hidden=true;
+  success.dataset.sampleRef='';
+  success.dataset.mobile='';
+  document.getElementById('sampleAddressForm').hidden=true;
+  document.getElementById('sampleAddressStatus').textContent='You can close this screen after noting your Sample ID.';
   document.getElementById('sampleProduct').textContent=product.name;
   document.getElementById('sampleSweet').value=product.id;
 
@@ -576,9 +584,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
   const form=e.currentTarget;
   const submit=form.querySelector('button[type="submit"]');
   const phone=document.getElementById('samplePhone').value.trim();
-  const address=document.getElementById('sampleAddress').value.trim().replace(/\s+/g,' ');
   const area=document.getElementById('sampleArea').value.trim().replace(/\s+/g,' ');
-  const pin=document.getElementById('samplePin').value.trim();
   const date=document.getElementById('sampleDate').value;
 
   if(area.length<3){
@@ -587,20 +593,12 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     document.getElementById('sampleArea').setCustomValidity('');
     return;
   }
-  if(address.length<8){
-    document.getElementById('sampleAddress').setCustomValidity('Please enter enough address detail for sample confirmation.');
-    document.getElementById('sampleAddress').reportValidity();
-    document.getElementById('sampleAddress').setCustomValidity('');
-    return;
-  }
 
   const qs=new URLSearchParams(location.search);
   const payload={
     name:document.getElementById('sampleName').value.trim(),
     mobile:phone,
-    address,
     locality:area,
-    pincode:pin,
     preferred_date:date,
     product_id:document.getElementById('sampleSweet').value,
     source:'website',
@@ -623,9 +621,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     const data=await res.json().catch(()=>({}));
     if(!res.ok){
       const messages={
-        active_sample_exists:'A sample request is already active for this mobile number.',
-        address_sample_exists:'A sample request is already active for this address/locality.',
-        outside_service_area:'This PIN code is not currently in our Ahmedabad sample route.',
+        active_sample_exists:data.sample_ref ? 'A sample request is already active. Reference: '+data.sample_ref : 'A sample request is already active for this mobile number.',
         date_closed:'Sample requests are closed for this date.',
         date_full:'Sample slots are full for this date. Please choose another date.'
       };
@@ -635,12 +631,77 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
 
     sessionStorage.removeItem('tkSampleDraft');
     trackEvent('sample_submit_success',{product_id:payload.product_id,metadata:{sample_ref:data.sample_ref || null}});
-    form.reset();
-    showToast('Sample request received. Reference: '+(data.sample_ref || data.request_id)+'. We will confirm the route and delivery slot before delivery.');
-    setLayer(document.getElementById('sampleLayer'),false);
+    const success=document.getElementById('sampleSuccess');
+    const ref=data.sample_ref || data.request_id;
+    success.dataset.sampleRef=ref;
+    success.dataset.mobile=phone;
+    document.getElementById('sampleSuccessRef').textContent=ref;
+    document.getElementById('sampleSuccessMessage').textContent='We’ll confirm the route and sample slot before delivery. Add the delivery address now, or keep this Sample ID for later follow-up.';
+    form.hidden=true;
+    success.hidden=false;
+    success.scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
   }catch{
     sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
     showToast('Network issue. Your details are kept on this device; please try again.');
+  }finally{
+    submit.disabled=false;
+    submit.textContent=original;
+  }
+});
+
+document.getElementById('sampleAddressToggle').addEventListener('click',()=>{
+  const form=document.getElementById('sampleAddressForm');
+  form.hidden=!form.hidden;
+  if(!form.hidden) document.getElementById('sampleAddress').focus();
+});
+
+document.getElementById('sampleAddressForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!e.currentTarget.reportValidity()) return;
+  const form=e.currentTarget;
+  const success=document.getElementById('sampleSuccess');
+  const submit=form.querySelector('button[type="submit"]');
+  const address=document.getElementById('sampleAddress').value.trim().replace(/\s+/g,' ');
+  const pincode=document.getElementById('samplePin').value.trim();
+
+  if(address.length<8){
+    document.getElementById('sampleAddress').setCustomValidity('Please enter enough address detail for delivery confirmation.');
+    document.getElementById('sampleAddress').reportValidity();
+    document.getElementById('sampleAddress').setCustomValidity('');
+    return;
+  }
+
+  submit.disabled=true;
+  const original=submit.textContent;
+  submit.textContent='Saving address…';
+  try{
+    const res=await fetch('https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-sample-request',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        action:'complete_address',
+        sample_ref:success.dataset.sampleRef,
+        mobile:success.dataset.mobile,
+        address,
+        pincode
+      })
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){
+      const messages={
+        address_sample_exists:'A sample request is already active for this address/locality.',
+        outside_service_area:'This PIN code is not currently in our Ahmedabad sample route.',
+        sample_verification_failed:'We could not verify this Sample ID with the mobile number.'
+      };
+      showToast(messages[data.error] || data.message || 'We could not save the delivery address. Please try again.');
+      return;
+    }
+    form.hidden=true;
+    document.getElementById('sampleAddressToggle').hidden=true;
+    document.getElementById('sampleAddressStatus').textContent='Delivery address saved. We’ll use it when confirming your route and sample slot.';
+    showToast('Delivery address saved for '+success.dataset.sampleRef+'.');
+  }catch{
+    showToast('Network issue. Please try saving the delivery address again.');
   }finally{
     submit.disabled=false;
     submit.textContent=original;
