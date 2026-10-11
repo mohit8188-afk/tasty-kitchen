@@ -465,3 +465,110 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
 @media(prefers-reduced-motion:reduce){
   .hero-sample-btn::after{display:none}
 }
+
+
+/* Point 4: show all three sweets in the hero */
+.hero-three-products{min-height:640px}
+.hero-product-stack{
+  position:relative;
+  width:min(590px,100%);
+  height:610px;
+  margin:auto;
+  perspective:1400px;
+}
+.hero-sweet-card{
+  position:absolute;
+  border:1px solid rgba(255,255,255,.14);
+  background:#2e1017;
+  border-radius:28px;
+  overflow:hidden;
+  padding:0;
+  color:#fff;
+  cursor:pointer;
+  box-shadow:0 26px 70px rgba(0,0,0,.34);
+  transition:transform .35s var(--ease),filter .35s var(--ease),opacity .35s var(--ease);
+}
+.hero-sweet-card img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.hero-sweet-card>span{
+  position:absolute;
+  left:14px;right:14px;bottom:14px;
+  padding:12px 13px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:16px;
+  background:rgba(33,8,13,.68);
+  backdrop-filter:blur(14px);
+  text-align:left;
+}
+.hero-sweet-card b,.hero-sweet-card small{display:block}
+.hero-sweet-card b{font:600 18px/1.1 "Playfair Display",serif}
+.hero-sweet-card small{margin-top:4px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#e2bd85}
+.hero-sweet-main{
+  width:58%;
+  height:78%;
+  left:21%;
+  top:3%;
+  z-index:3;
+  transform:translateZ(40px);
+}
+.hero-sweet-left{
+  width:40%;
+  height:55%;
+  left:1%;
+  top:23%;
+  z-index:2;
+  transform:rotateY(10deg) rotateZ(-4deg);
+}
+.hero-sweet-right{
+  width:40%;
+  height:55%;
+  right:1%;
+  top:26%;
+  z-index:2;
+  transform:rotateY(-10deg) rotateZ(4deg);
+}
+.hero-sweet-card:hover,.hero-sweet-card:focus-visible{
+  z-index:5;
+  transform:translateY(-8px) scale(1.02);
+  outline:none;
+  filter:saturate(1.06) brightness(1.03);
+}
+.hero-three-caption{
+  position:absolute;
+  left:50%;bottom:5px;z-index:6;
+  transform:translateX(-50%);
+  width:max-content;
+  max-width:90%;
+  text-align:center;
+  padding:11px 16px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.13);
+  background:rgba(42,10,16,.72);
+  backdrop-filter:blur(14px);
+}
+.hero-three-caption span,.hero-three-caption strong{display:block}
+.hero-three-caption span{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:#d8a65f}
+.hero-three-caption strong{margin-top:3px;font:600 18px/1.1 "Playfair Display",serif}
+@media(max-width:900px){
+  .hero-three-products{min-height:560px}
+  .hero-product-stack{height:530px;width:min(520px,100%)}
+}
+@media(max-width:640px){
+  .hero-three-products{min-height:470px}
+  .hero-product-stack{height:450px;width:100%}
+  .hero-sweet-main{width:58%;height:72%;left:21%;top:2%}
+  .hero-sweet-left,.hero-sweet-right{width:42%;height:50%;top:26%}
+  .hero-sweet-card{border-radius:22px}
+  .hero-sweet-card>span{left:8px;right:8px;bottom:8px;padding:9px 10px;border-radius:13px}
+  .hero-sweet-card b{font-size:14px}
+  .hero-sweet-card small{font-size:7px}
+  .hero-three-caption{bottom:0}
+  .hero-three-caption strong{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero-sweet-card{transition:none}
+}
