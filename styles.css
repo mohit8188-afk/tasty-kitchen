@@ -1025,3 +1025,46 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   }
   .info-panel{order:8}
 }
+
+
+/* Point 25: keep Order and Free Sample visually distinct, equally legible */
+.detail-actions .order-btn{
+  min-height:58px;
+  border:1px solid #431117;
+  background:#431117;
+  color:#fff8ef;
+  box-shadow:0 10px 26px rgba(67,17,23,.18);
+}
+.detail-actions .order-btn:hover{
+  background:#571820;
+  border-color:#571820;
+}
+.detail-actions .sample-btn{
+  min-height:58px;
+  border:1px solid #d4a15d;
+  background:#fff8ef;
+  color:#431117;
+  box-shadow:none;
+}
+.detail-actions .sample-btn span{
+  color:#7a4c32;
+  opacity:1;
+  font-weight:700;
+}
+.detail-actions .sample-btn:hover{
+  background:#f8ead5;
+  border-color:#c68e49;
+}
+@media(max-width:640px){
+  .detail-actions .order-btn,
+  .detail-actions .sample-btn{
+    min-height:60px;
+    font-size:16px;
+    font-weight:800;
+  }
+  .detail-actions .sample-btn span{
+    margin-top:3px;
+    font-size:10px;
+    letter-spacing:.045em;
+  }
+}
