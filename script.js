@@ -59,7 +59,7 @@ const PRODUCTS = [
       {label:'500g', price:null, preview:true}
     ],
     ingredients: ['Jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
-    delivery: 'Free sample requests are available within Ahmedabad. Nationwide delivery for Jalebi with Rabdi will be enabled only after shelf-life, packaging and cold-chain suitability are validated.',
+    delivery: 'Jalebi with Rabdi is available for delivery only within Ahmedabad. Free sample requests are also Ahmedabad-only.',
     gifting: '250g and 500g packaging is planned. Final presentation and delivery method are still under testing.',
     colors: ['#5a210d','#c76a13','#f4c56a'],
     media: [
