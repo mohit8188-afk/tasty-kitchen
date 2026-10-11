@@ -4,16 +4,15 @@ const PRODUCTS = [
     kicker: 'Signature festive sweet',
     name: 'Makhana Mewa Bites',
     tagline: 'Dates, makhana, dry fruits, coconut & ghee in a rich festive bite.',
-    description: 'Our signature launch sweet: soft, nutty and gift-ready. It is prepared fresh after the order is paid and confirmed.',
-    basePack: '200g festive box',
+    description: 'Our signature sweet: soft, nutty and gift-ready, prepared fresh in small batches.',
+    basePack: '250g festive box',
     packs: [
-      {label:'200g', price:449},
-      {label:'400g', price:849, preview:true},
-      {label:'800g', price:1599, preview:true}
+      {label:'250g', price:null, preview:true},
+      {label:'500g', price:null, preview:true}
     ],
     ingredients: ['Makhana','Dates','Cashew','Almond','Raisins','Desiccated coconut','Ghee','Limited added sugar'],
-    delivery: 'Initial delivery is planned for selected Ahmedabad societies, with wider Ahmedabad delivery added as capacity allows. Orders are prepaid and production starts after successful payment.',
-    gifting: 'Festive and corporate gifting is planned for societies, offices and local businesses. Bulk quantity pricing will be finalized before launch.',
+    delivery: 'Delivery is planned across India. Free sample requests are available only within Ahmedabad. Final dispatch timelines and charges will be shown before launch.',
+    gifting: 'Available for festive and corporate gifting in 250g and 500g boxes. Bulk pricing will be finalized before marketing launch.',
     colors: ['#401015','#7b2d37','#d4a15d'],
     media: [
       'assets/makhana-hero-hires.webp',
@@ -27,21 +26,37 @@ const PRODUCTS = [
   },
   {
     id: 'coconut-mewa-ladoo',
-    kicker: 'New festive addition',
+    kicker: 'Coconut & mewa',
     name: 'Coconut Mewa Ladoo',
     tagline: 'Soft coconut-rich ladoos with mewa and ghee.',
-    description: 'A second sweet added for family review. Recipe, pack sizes and prices shown here are preview data and will be replaced after final approval.',
-    basePack: '250g festive box • preview',
+    description: 'A coconut-forward festive ladoo made for gifting and sharing. Final recipe details and photography are being completed.',
+    basePack: '250g festive box',
     packs: [
       {label:'250g', price:399, preview:true},
-      {label:'500g', price:749, preview:true},
-      {label:'1kg', price:1399, preview:true}
+      {label:'500g', price:749, preview:true}
     ],
     ingredients: ['Coconut','Cashew','Almond','Raisins','Ghee','Final recipe to be confirmed'],
-    delivery: 'Same prepaid, fresh-production model. Delivery availability will depend on daily production capacity and customer area in Ahmedabad.',
-    gifting: 'Planned in premium festive boxes. Final gifting presentation and bulk pricing will be approved after the product itself is finalized.',
+    delivery: 'Delivery is planned across India. Free sample requests are available only within Ahmedabad.',
+    gifting: 'Planned in premium 250g and 500g festive boxes. Final gifting presentation and bulk pricing will be approved before marketing launch.',
     colors: ['#5b241d','#b86e4a','#f1d8a9'],
     art: 'ladoo'
+  },
+  {
+    id: 'jalebi-with-rabdi',
+    kicker: 'Fresh festive indulgence',
+    name: 'Jalebi with Rabdi',
+    tagline: 'Crisp jalebi paired with rich, creamy rabdi.',
+    description: 'Our third festive sweet brings a classic hot-and-cold pairing to the collection. Packaging, pricing and product photography are being finalized.',
+    basePack: '250g pack',
+    packs: [
+      {label:'250g', price:null, preview:true},
+      {label:'500g', price:null, preview:true}
+    ],
+    ingredients: ['Jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
+    delivery: 'Free sample requests are available within Ahmedabad. Nationwide delivery for Jalebi with Rabdi will be enabled only after shelf-life, packaging and cold-chain suitability are validated.',
+    gifting: '250g and 500g packaging is planned. Final presentation and delivery method are still under testing.',
+    colors: ['#5a210d','#c76a13','#f4c56a'],
+    art: 'jalebi'
   }
 ];
 
@@ -65,7 +80,7 @@ const checkoutTotal = document.getElementById('checkoutTotal');
 const quantity = document.getElementById('quantity');
 const toast = document.getElementById('toast');
 
-function money(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+function money(n){ return n==null ? 'Price finalising' : '₹' + Number(n).toLocaleString('en-IN'); }
 
 function bitesSvg(id=''){
   return `<svg viewBox="0 0 760 860" aria-hidden="true" data-art="${id}">
@@ -114,12 +129,36 @@ function ladooSvg(id=''){
   </svg>`;
 }
 
+function jalebiSvg(id=''){
+  return `<svg viewBox="0 0 760 860" aria-hidden="true" data-art="${id}">
+    <defs>
+      <linearGradient id="jbg-${id}" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#6b2310"/><stop offset=".55" stop-color="#42100b"/><stop offset="1" stop-color="#23090a"/></linearGradient>
+      <linearGradient id="jal-${id}" x1="0" x2="1"><stop stop-color="#ffb52e"/><stop offset=".55" stop-color="#ef7d12"/><stop offset="1" stop-color="#c24f0a"/></linearGradient>
+      <filter id="js-${id}" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dy="20" stdDeviation="18" flood-opacity=".35"/></filter>
+    </defs>
+    <rect width="760" height="860" fill="url(#jbg-${id})"/>
+    <circle cx="600" cy="150" r="220" fill="#ffc65e" opacity=".12"/>
+    <g filter="url(#js-${id})">
+      <ellipse cx="380" cy="530" rx="285" ry="170" fill="#ead5b1"/>
+      <ellipse cx="380" cy="510" rx="250" ry="140" fill="#fff4dd"/>
+      <ellipse cx="385" cy="500" rx="130" ry="78" fill="#f6dfaa"/>
+      <g fill="none" stroke="url(#jal-${id})" stroke-width="32" stroke-linecap="round">
+        <path d="M210 410c65-70 150 8 83 65s-130-12-69-67 143-8 102 64"/>
+        <path d="M380 390c72-72 158 13 88 69s-140-16-70-72 149-4 96 72"/>
+        <path d="M280 520c65-62 145 4 84 57s-129-5-74-58 142-9 101 58"/>
+      </g>
+      <ellipse cx="520" cy="565" rx="85" ry="48" fill="#f4e2b7"/>
+      <g fill="#7b9b52"><circle cx="500" cy="552" r="6"/><circle cx="540" cy="575" r="5"/></g>
+    </g>
+  </svg>`;
+}
+
 function artSvg(product, suffix='card'){
   if(product.media?.length){
     const src = suffix === 'detail' ? product.media[0] : product.media[0];
     return `<img src="${src}" alt="${product.name}" loading="lazy" decoding="async">`;
   }
-  return product.art === 'ladoo' ? ladooSvg(product.id+'-'+suffix) : bitesSvg(product.id+'-'+suffix);
+  return product.art === 'ladoo' ? ladooSvg(product.id+'-'+suffix) : product.art === 'jalebi' ? jalebiSvg(product.id+'-'+suffix) : bitesSvg(product.id+'-'+suffix);
 }
 
 function renderCards(){
@@ -131,7 +170,7 @@ function renderCards(){
         <span class="product-kicker">${p.kicker}</span>
         <h3>${p.name}</h3>
         <div class="card-bottom">
-          <div><strong>From ${money(p.packs[0].price)}</strong><span>${p.packs[0].label}${p.packs[0].preview?' • preview':''}</span></div>
+          <div><strong>${p.packs[0].price==null?'Price finalising':'From '+money(p.packs[0].price)}</strong><span>250g & 500g${p.packs[0].preview?' • preview':''}</span></div>
           <span class="card-arrow">↗</span>
         </div>
       </div>
@@ -175,12 +214,14 @@ function syncLayers(){
   const payment = document.getElementById('paymentLayer');
   const photoOpen = photo?.classList.contains('open');
   const checkoutOpen = checkoutLayer.classList.contains('is-open');
+  const sample=document.getElementById('sampleLayer');
+  const sampleOpen=sample?.classList.contains('is-open');
   const paymentOpen = payment.classList.contains('is-open');
   const productOpen = productLayer.classList.contains('is-open');
-  productLayer.inert = !productOpen || checkoutOpen || photoOpen;
+  productLayer.inert = !productOpen || checkoutOpen || photoOpen || sampleOpen;
   checkoutLayer.inert = !checkoutOpen || paymentOpen;
   for(const el of document.querySelectorAll('body > header, body > main, body > footer, #whatsappFab')) el.inert=productOpen;
-  document.body.classList.toggle('modal-open',productOpen);
+  document.body.classList.toggle('modal-open',productOpen || sampleOpen);
 }
 
 function openProduct(id, sourceCard, push=true){
@@ -296,7 +337,7 @@ function fillProduct(){
 function renderPacks(){
   detailPrice.textContent = money(activePack.price);
   detailPack.textContent = activePack.label + (activePack.preview?' • preview price':'');
-  packOptions.innerHTML = activeProduct.packs.map((p,i)=>`<button type="button" class="pack-chip ${p.label===activePack.label?'active':''}" data-pack="${i}" aria-pressed="${p.label===activePack.label}">${p.label} • ${money(p.price)}${p.preview?'*':''}</button>`).join('');
+  packOptions.innerHTML = activeProduct.packs.map((p,i)=>`<button type="button" class="pack-chip ${p.label===activePack.label?'active':''}" data-pack="${i}" aria-pressed="${p.label===activePack.label}">${p.label}${p.price==null?' • price soon':' • '+money(p.price)}${p.preview?'*':''}</button>`).join('');
   packOptions.querySelectorAll('.pack-chip').forEach(btn=>{
     btn.addEventListener('click',()=>{
       activePack=activeProduct.packs[Number(btn.dataset.pack)];
@@ -313,7 +354,7 @@ function pulse(el){
 
 function closeProduct(push=true){
   if(!productLayer.classList.contains('is-open')) return;
-  closePhotoLightbox(); closePayment(); closeCheckout();
+  closePhotoLightbox(); closePayment(); closeCheckout(); const sample=document.getElementById('sampleLayer'); if(sample?.classList.contains('is-open')) setLayer(sample,false,false);
   const target=productTrigger?.querySelector('[data-card-media]');
   const visible=target && target.getBoundingClientRect().top<innerHeight && target.getBoundingClientRect().bottom>0;
   if(visible) detailMedia.style.viewTransitionName='product-media';
@@ -343,7 +384,7 @@ document.querySelectorAll('.info-card').forEach(btn=>{
       if(activeProduct.media?.length){
         html='<div class="photo-gallery-head"><strong>Product photos</strong><span>Tap any photo to view it above. Tap the large photo to open full-screen.</span></div><div class="photo-grid">'+activeProduct.media.map((src,i)=>'<button type="button" class="photo-thumb '+(i===0?'active':'')+'" data-photo="'+src+'" aria-label="View '+activeProduct.name+' photo '+(i+1)+'"><img src="'+src+'" alt="'+activeProduct.name+' photo '+(i+1)+'" loading="lazy" decoding="async"></button>').join('')+'</div>';
       }else{
-        html='<p><strong>Photos</strong><br>Product photography will be added after the Coconut Mewa Ladoo is finalized.</p>';
+        html='<p><strong>Photos</strong><br>Product photography will be added after this sweet is finalized.</p>';
       }
     }
     infoPanel.innerHTML=html;
@@ -429,8 +470,26 @@ async function showLightboxPhoto(index){
   selectDetailPhoto(next);
 }
 
+document.getElementById('openSample').addEventListener('click',()=>{
+  const layer=document.getElementById('sampleLayer');
+  document.getElementById('sampleProduct').textContent=activeProduct.name;
+  document.getElementById('sampleSweet').value=activeProduct.id;
+  setLayer(layer,true);
+  layer.querySelector('.sample-sheet').scrollTop=0;
+});
+document.querySelectorAll('[data-close-sample]').forEach(el=>el.addEventListener('click',()=>{
+  const layer=document.getElementById('sampleLayer');
+  if(layer.classList.contains('is-open')) setLayer(layer,false);
+}));
+document.getElementById('sampleForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  if(!e.currentTarget.reportValidity()) return;
+  showToast('Sample request flow is ready. Submission will activate with the order backend before marketing launch.');
+  setLayer(document.getElementById('sampleLayer'),false);
+});
+
 document.getElementById('openCheckout').addEventListener('click',()=>{
-  checkoutSummary.innerHTML=`<div class="checkout-product-art">${artSvg(activeProduct,'checkout')}</div><div><strong>${activeProduct.name} — ${activePack.label}</strong><span>${money(activePack.price)} each${activePack.preview?' • preview price':''} • 100% advance</span></div>`;
+  checkoutSummary.innerHTML=`<div class="checkout-product-art">${artSvg(activeProduct,'checkout')}</div><div><strong>${activeProduct.name} — ${activePack.label}</strong><span>${activePack.price==null?'Price finalising':money(activePack.price)+' each'}${activePack.preview?' • preview':''} • 100% advance</span></div>`;
   quantity.value=1;
   updateTotal();
   setLayer(checkoutLayer,true);
@@ -445,7 +504,7 @@ document.querySelectorAll('[data-close-checkout]').forEach(el=>el.addEventListen
 
 function updateTotal(){
   const q=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));
-  checkoutTotal.textContent=money(activePack.price*q);
+  checkoutTotal.textContent=activePack.price==null?'Price finalising':money(activePack.price*q);
 }
 quantity.addEventListener('input',updateTotal);
 quantity.addEventListener('change',()=>{quantity.value=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));updateTotal();});
@@ -479,6 +538,7 @@ window.addEventListener('keydown',e=>{
   const photoOpen=photo?.classList.contains('open');
   if(e.key==='Escape'){
     if(photoOpen) closePhotoLightbox();
+    else if(document.getElementById('sampleLayer')?.classList.contains('is-open')) setLayer(document.getElementById('sampleLayer'),false);
     else if(paymentLayer.classList.contains('is-open')) closePayment();
     else if(checkoutLayer.classList.contains('is-open')) closeCheckout();
     else closeProduct();
@@ -487,7 +547,8 @@ window.addEventListener('keydown',e=>{
     e.preventDefault();showLightboxPhoto(activeMediaIndex+(e.key==='ArrowRight'?1:-1));
   }
   if(e.key==='Tab'){
-    const layer=photoOpen?photo:paymentLayer.classList.contains('is-open')?paymentLayer:checkoutLayer.classList.contains('is-open')?checkoutLayer:productLayer.classList.contains('is-open')?productLayer:null;
+    const sample=document.getElementById('sampleLayer');
+    const layer=photoOpen?photo:paymentLayer.classList.contains('is-open')?paymentLayer:sample?.classList.contains('is-open')?sample:checkoutLayer.classList.contains('is-open')?checkoutLayer:productLayer.classList.contains('is-open')?productLayer:null;
     if(!layer) return;
     const items=[...layer.querySelectorAll('button,a[href],input,textarea')].filter(el=>!el.disabled && el.getClientRects().length);
     const first=items[0],last=items.at(-1);
