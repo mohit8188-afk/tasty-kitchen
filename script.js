@@ -29,7 +29,7 @@ const PRODUCTS = [
     kicker: 'Coconut & mewa',
     name: 'Coconut Mewa Ladoo',
     tagline: 'Soft coconut-rich ladoos with mewa and ghee.',
-    description: 'A coconut-forward festive ladoo made for gifting and sharing. Final recipe details and photography are being completed.',
+    description: 'A coconut-forward festive ladoo made for gifting and sharing, presented with a premium homemade finish.',
     basePack: '250g festive box',
     packs: [
       {label:'250g', price:399, preview:true},
@@ -39,6 +39,12 @@ const PRODUCTS = [
     delivery: 'Delivery is planned across India. Free sample requests are available only within Ahmedabad.',
     gifting: 'Planned in premium 250g and 500g festive boxes. Final gifting presentation and bulk pricing will be approved before marketing launch.',
     colors: ['#5b241d','#b86e4a','#f1d8a9'],
+    media: [
+      'assets/coconut-1.webp',
+      'assets/coconut-2.webp',
+      'assets/coconut-3.webp'
+    ],
+    photoLabels: ['Festive platter','Close product view','Premium gift presentation'],
     art: 'ladoo'
   },
   {
@@ -46,7 +52,7 @@ const PRODUCTS = [
     kicker: 'Fresh festive indulgence',
     name: 'Jalebi with Rabdi',
     tagline: 'Crisp jalebi paired with rich, creamy rabdi.',
-    description: 'Our third festive sweet brings a classic hot-and-cold pairing to the collection. Packaging, pricing and product photography are being finalized.',
+    description: 'Our third festive sweet brings a classic pairing of crisp jalebi with rich, creamy rabdi to the collection.',
     basePack: '250g pack',
     packs: [
       {label:'250g', price:null, preview:true},
@@ -56,6 +62,12 @@ const PRODUCTS = [
     delivery: 'Free sample requests are available within Ahmedabad. Nationwide delivery for Jalebi with Rabdi will be enabled only after shelf-life, packaging and cold-chain suitability are validated.',
     gifting: '250g and 500g packaging is planned. Final presentation and delivery method are still under testing.',
     colors: ['#5a210d','#c76a13','#f4c56a'],
+    media: [
+      'assets/jalebi-1.webp',
+      'assets/jalebi-2.webp',
+      'assets/jalebi-3.webp'
+    ],
+    photoLabels: ['Jalebi with Rabdi platter','Festive close-up','Premium festive thali'],
     art: 'jalebi'
   }
 ];
