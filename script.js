@@ -7,8 +7,8 @@ const PRODUCTS = [
     description: 'Our signature sweet: soft, nutty and gift-ready, prepared fresh in small batches.',
     basePack: '250g festive box',
     packs: [
-      {label:'250g', price:null, preview:true},
-      {label:'500g', price:null, preview:true}
+      {label:'250g', price:385, preview:false},
+      {label:'500g', price:770, preview:false}
     ],
     ingredients: ['Makhana','Dates','Cashew','Almond','Raisins','Desiccated coconut','Ghee','Limited added sugar'],
     delivery: 'Delivery is planned across India. Free sample requests are available only within Ahmedabad. Final dispatch timelines and charges will be shown before launch.',
@@ -32,8 +32,8 @@ const PRODUCTS = [
     description: 'A coconut-forward festive ladoo made for gifting and sharing, presented with a premium homemade finish.',
     basePack: '250g festive box',
     packs: [
-      {label:'250g', price:399, preview:true},
-      {label:'500g', price:749, preview:true}
+      {label:'250g', price:190, preview:false},
+      {label:'500g', price:380, preview:false}
     ],
     ingredients: ['Coconut','Cashew','Almond','Raisins','Ghee','Final recipe to be confirmed'],
     delivery: 'Delivery is planned across India. Free sample requests are available only within Ahmedabad.',
@@ -55,8 +55,8 @@ const PRODUCTS = [
     description: 'Our third festive sweet brings a classic pairing of crisp jalebi with rich, creamy rabdi to the collection.',
     basePack: '250g pack',
     packs: [
-      {label:'250g', price:null, preview:true},
-      {label:'500g', price:null, preview:true}
+      {label:'250g', price:240, preview:false},
+      {label:'500g', price:480, preview:false}
     ],
     ingredients: ['Jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
     delivery: 'Jalebi with Rabdi is available for delivery only within Ahmedabad. Free sample requests are also Ahmedabad-only.',
@@ -92,7 +92,7 @@ const checkoutTotal = document.getElementById('checkoutTotal');
 const quantity = document.getElementById('quantity');
 const toast = document.getElementById('toast');
 
-function money(n){ return n==null ? 'Price finalising' : '₹' + Number(n).toLocaleString('en-IN'); }
+function money(n){ return n==null ? '' : '₹' + Number(n).toLocaleString('en-IN'); }
 
 function bitesSvg(id=''){
   return `<svg viewBox="0 0 760 860" aria-hidden="true" data-art="${id}">
@@ -182,7 +182,7 @@ function renderCards(){
         <span class="product-kicker">${p.kicker}</span>
         <h3>${p.name}</h3>
         <div class="card-bottom">
-          <div><strong>${p.packs[0].price==null?'Price finalising':'From '+money(p.packs[0].price)}</strong><span>250g & 500g${p.packs[0].preview?' • preview':''}</span></div>
+          <div><strong>${p.packs[0].price==null?'':'From '+money(p.packs[0].price)}</strong><span>250g & 500g${p.packs[0].preview?' • preview':''}</span></div>
           <span class="card-arrow">↗</span>
         </div>
       </div>
@@ -592,7 +592,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
 });
 
 document.getElementById('openCheckout').addEventListener('click',()=>{
-  checkoutSummary.innerHTML=`<div class="checkout-product-art">${artSvg(activeProduct,'checkout')}</div><div><strong>${activeProduct.name} — ${activePack.label}</strong><span>${activePack.price==null?'Price finalising':money(activePack.price)+' each'}${activePack.preview?' • preview':''} • 100% advance</span></div>`;
+  checkoutSummary.innerHTML=`<div class="checkout-product-art">${artSvg(activeProduct,'checkout')}</div><div><strong>${activeProduct.name} — ${activePack.label}</strong><span>${activePack.price==null?'':money(activePack.price)+' each'}${activePack.preview?' • preview':''} • 100% advance</span></div>`;
   quantity.value=1;
   updateTotal();
   setLayer(checkoutLayer,true);
@@ -607,7 +607,7 @@ document.querySelectorAll('[data-close-checkout]').forEach(el=>el.addEventListen
 
 function updateTotal(){
   const q=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));
-  checkoutTotal.textContent=activePack.price==null?'Price finalising':money(activePack.price*q);
+  checkoutTotal.textContent=activePack.price==null?'':money(activePack.price*q);
 }
 quantity.addEventListener('input',updateTotal);
 quantity.addEventListener('change',()=>{quantity.value=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));updateTotal();});
