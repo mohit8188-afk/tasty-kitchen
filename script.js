@@ -470,12 +470,19 @@ async function showLightboxPhoto(index){
   selectDetailPhoto(next);
 }
 
-document.getElementById('openSample').addEventListener('click',()=>{
+function openSampleRequest(productId=activeProduct?.id){
   const layer=document.getElementById('sampleLayer');
-  document.getElementById('sampleProduct').textContent=activeProduct.name;
-  document.getElementById('sampleSweet').value=activeProduct.id;
+  const product=PRODUCTS.find(p=>p.id===productId) || PRODUCTS[0];
+  document.getElementById('sampleProduct').textContent=product.name;
+  document.getElementById('sampleSweet').value=product.id;
   setLayer(layer,true);
   layer.querySelector('.sample-sheet').scrollTop=0;
+}
+document.getElementById('openSample').addEventListener('click',()=>openSampleRequest(activeProduct.id));
+document.getElementById('heroSampleBtn')?.addEventListener('click',()=>openSampleRequest(PRODUCTS[0].id));
+document.getElementById('sampleSweet')?.addEventListener('change',e=>{
+  const product=PRODUCTS.find(p=>p.id===e.target.value);
+  if(product) document.getElementById('sampleProduct').textContent=product.name;
 });
 document.querySelectorAll('[data-close-sample]').forEach(el=>el.addEventListener('click',()=>{
   const layer=document.getElementById('sampleLayer');
@@ -484,7 +491,7 @@ document.querySelectorAll('[data-close-sample]').forEach(el=>el.addEventListener
 document.getElementById('sampleForm').addEventListener('submit',e=>{
   e.preventDefault();
   if(!e.currentTarget.reportValidity()) return;
-  showToast('Sample request flow is ready. Submission will activate with the order backend before marketing launch.');
+  showToast('Sample request captured in preview. Backend submission will be activated before marketing launch.');
   setLayer(document.getElementById('sampleLayer'),false);
 });
 
