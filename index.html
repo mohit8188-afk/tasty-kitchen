@@ -253,6 +253,51 @@
         </div>
       </div>
     </section>
+
+    <section class="gifting-section" id="corporate-gifting">
+      <div class="gifting-inner">
+        <div class="gifting-copy">
+          <p class="kicker">Bulk & corporate gifting</p>
+          <h2>Planning gifts for a team,<br><em>clients or festive guests?</em></h2>
+          <p>Tell us the approximate requirement. We’ll confirm product availability, packaging options, production capacity and delivery feasibility before sharing a tailored quote.</p>
+          <div class="gifting-points" aria-label="Corporate gifting highlights">
+            <span>250g & 500g packs</span>
+            <span>Fresh batches</span>
+            <span>India-wide options available</span>
+          </div>
+        </div>
+
+        <form class="gifting-form" id="giftingForm">
+          <div class="field-row">
+            <label>Name<input id="giftingName" required autocomplete="name" placeholder="Your name"></label>
+            <label>Mobile<input id="giftingMobile" type="tel" pattern="[6-9][0-9]{9}" maxlength="10" required inputmode="tel" placeholder="10-digit mobile"></label>
+          </div>
+          <div class="field-row">
+            <label>Business / organisation <span class="optional-label">optional</span><input id="giftingBusiness" maxlength="120" placeholder="Company / clinic / office"></label>
+            <label>City<input id="giftingCity" required placeholder="e.g. Ahmedabad"></label>
+          </div>
+          <label>Approximate quantity
+            <select id="giftingQuantity" required>
+              <option value="">Choose range</option>
+              <option value="10-25">10–25 boxes</option>
+              <option value="26-50">26–50 boxes</option>
+              <option value="51-100">51–100 boxes</option>
+              <option value="101-250">101–250 boxes</option>
+              <option value="251+">251+ boxes</option>
+            </select>
+          </label>
+          <fieldset class="gifting-products">
+            <legend>Products you’re considering</legend>
+            <label><input type="checkbox" name="giftingProduct" value="makhana-mewa-bites"> Makhana Mewa Bites</label>
+            <label><input type="checkbox" name="giftingProduct" value="coconut-mewa-ladoo"> Coconut Mewa Ladoo</label>
+            <label><input type="checkbox" name="giftingProduct" value="jalebi-with-rabdi"> Desi Ghee Jalebi with Rabdi</label>
+          </fieldset>
+          <label>Requirement details <span class="optional-label">optional</span><textarea id="giftingNotes" maxlength="1200" rows="3" placeholder="Delivery date, gifting occasion, packaging preference or anything else we should know."></textarea></label>
+          <button class="gifting-submit" type="submit">Request a gifting quote</button>
+          <small id="giftingStatus">No payment is required. We’ll confirm feasibility before quoting.</small>
+        </form>
+      </div>
+    </section>
   </main>
 
   <section class="product-layer" id="productLayer" aria-hidden="true" inert>
