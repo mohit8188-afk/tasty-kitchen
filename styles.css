@@ -363,3 +363,36 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   .hero-actions .hero-order-link{width:100%;justify-content:center;margin-top:2px}
   .hero-sample-note{text-align:center}
 }
+
+
+/* 2026-10-11 mobile sample modal hotfix */
+.sample-btn{
+  background:linear-gradient(135deg,#f0d3a4,#dca45b);
+  color:#3a1116;
+  border-color:#d9a55f;
+  box-shadow:0 8px 24px rgba(213,161,94,.18);
+}
+.sample-btn span{color:#6c3f2c;opacity:.9}
+.sample-layer{z-index:240;}
+.sample-layer .checkout-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(22,8,12,.72);
+  backdrop-filter:blur(8px);
+}
+.sample-sheet{z-index:2;}
+@media(max-width:640px){
+  .sample-layer{place-items:end stretch;}
+  .sample-sheet{
+    width:100%;
+    max-height:92dvh;
+    margin:0;
+    border-radius:26px 26px 0 0;
+    padding:28px 18px calc(22px + env(safe-area-inset-bottom));
+  }
+  .sample-btn{
+    min-height:58px;
+    font-size:16px;
+  }
+  .detail-actions{z-index:6}
+}
