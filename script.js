@@ -130,6 +130,7 @@ function trackEvent(eventName, extra={}){
     keepalive:true
   }).catch(()=>{});
 }
+window.tkTrackPaymentComplete=(orderRef,total)=>trackEvent('payment_complete',{metadata:{order_ref:orderRef || null,total:Number(total)||0}});
 trackEvent('page_view');
 
 let cart = [];
