@@ -195,10 +195,21 @@
           <label>Name<input id="customerName" autocomplete="name" required placeholder="Your name"></label>
           <label>Mobile<input id="customerPhone" type="tel" pattern="[6-9][0-9]{9}" maxlength="10" autocomplete="tel-national" required inputmode="tel" placeholder="10-digit mobile"></label>
         </div>
-        <label>Delivery address<textarea id="customerAddress" autocomplete="street-address" required rows="3" placeholder="Full delivery address with city, state and PIN code"></textarea></label>
+        <label>Delivery address<textarea id="customerAddress" autocomplete="street-address" required rows="3" placeholder="House / building, street and locality"></textarea></label>
         <div class="field-row">
-          <label>Delivery<input id="deliveryDate" required type="date"></label>
+          <label>PIN code<input id="customerPin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="postal-code" required placeholder="6-digit PIN"></label>
           <label>Quantity<input id="quantity" required step="1" type="number" min="1" max="20" value="1"></label>
+        </div>
+        <label>Preferred delivery date<input id="deliveryDate" required type="date"></label>
+
+        <div class="checkout-breakdown" id="checkoutBreakdown">
+          <div><span>Product</span><strong id="checkoutProductLine">—</strong></div>
+          <div><span>Pack</span><strong id="checkoutPackLine">—</strong></div>
+          <div><span>Quantity</span><strong id="checkoutQtyLine">1</strong></div>
+          <div><span>Subtotal</span><strong id="checkoutSubtotal">—</strong></div>
+          <div><span>Delivery</span><strong id="checkoutDelivery">Confirmed after address</strong></div>
+          <div class="checkout-grand-total"><span>Product total</span><strong id="checkoutGrandTotal">—</strong></div>
+          <small id="checkoutEstimate">Preferred date is subject to delivery-area and route confirmation.</small>
         </div>
 
         <div class="payment-preview">
@@ -206,7 +217,7 @@
           <span class="secure-mark" aria-hidden="true">◇</span>
         </div>
 
-        <button class="primary-btn checkout-pay" type="submit">Continue to payment • <span id="checkoutTotal"></span></button>
+        <button class="primary-btn checkout-pay" type="submit">Review order • <span id="checkoutTotal"></span></button>
         <small class="preview-warning">Preview only — no payment is collected and no order is placed.</small>
       </form>
     </div>
