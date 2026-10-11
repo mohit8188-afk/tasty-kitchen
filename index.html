@@ -468,6 +468,84 @@
     </div>
   </section>
 
+  <aside class="mithu-guide" id="mithuGuide" aria-label="Mithu, Tasty Kitchen guide">
+    <div class="mithu-bubble" id="mithuBubble" role="status" aria-live="polite">
+      <button class="mithu-close" id="mithuClose" type="button" aria-label="Hide Mithu">×</button>
+      <p class="mithu-name">Mithu • Tasty Kitchen guide</p>
+      <p class="mithu-message" id="mithuMessage">Namaste! I can help you choose a sweet, request a free sample or place an order.</p>
+      <div class="mithu-actions" id="mithuActions">
+        <button type="button" data-mithu-action="sample">Free sample</button>
+        <button type="button" data-mithu-action="products">See sweets</button>
+      </div>
+    </div>
+
+    <button class="mithu-avatar" id="mithuAvatar" type="button" aria-expanded="true" aria-controls="mithuBubble" aria-label="Open Mithu guide">
+      <svg class="mithu-svg" viewBox="0 0 180 210" aria-hidden="true">
+        <defs>
+          <linearGradient id="mithuBodyGrad" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#6f1f2a"/>
+            <stop offset="1" stop-color="#3b0e15"/>
+          </linearGradient>
+          <linearGradient id="mithuGoldGrad" x1="0" x2="1">
+            <stop offset="0" stop-color="#f1d7aa"/>
+            <stop offset="1" stop-color="#c78d49"/>
+          </linearGradient>
+          <filter id="mithuShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#2d0b10" flood-opacity=".22"/>
+          </filter>
+        </defs>
+
+        <g class="mithu-float" filter="url(#mithuShadow)">
+          <g class="mithu-hat">
+            <path d="M53 49c-8-6-10-15-5-22 5-8 15-9 23-5 2-11 11-18 21-18s20 7 22 18c8-4 18-3 23 5 5 7 3 16-5 22v14H53Z" fill="#fff9ef"/>
+            <rect x="57" y="49" width="70" height="21" rx="10" fill="#f1e4cf"/>
+            <circle cx="92" cy="59" r="12" fill="url(#mithuGoldGrad)"/>
+            <text x="92" y="63" text-anchor="middle" font-size="10" font-family="Arial,sans-serif" font-weight="700" fill="#4a1219">TK</text>
+          </g>
+
+          <g class="mithu-head">
+            <ellipse cx="92" cy="102" rx="48" ry="42" fill="#e6b47c"/>
+            <ellipse cx="50" cy="104" rx="8" ry="12" fill="#d89e67"/>
+            <ellipse cx="134" cy="104" rx="8" ry="12" fill="#d89e67"/>
+            <path d="M65 87q11-9 22 0" fill="none" stroke="#6b3f2f" stroke-width="3" stroke-linecap="round"/>
+            <path d="M98 87q11-9 22 0" fill="none" stroke="#6b3f2f" stroke-width="3" stroke-linecap="round"/>
+            <g class="mithu-eyes">
+              <ellipse cx="76" cy="99" rx="5" ry="7" fill="#2b1715"/>
+              <ellipse cx="108" cy="99" rx="5" ry="7" fill="#2b1715"/>
+              <circle cx="74" cy="97" r="1.5" fill="#fff"/>
+              <circle cx="106" cy="97" r="1.5" fill="#fff"/>
+            </g>
+            <g class="mithu-blink">
+              <path d="M69 99h14" stroke="#2b1715" stroke-width="3" stroke-linecap="round"/>
+              <path d="M101 99h14" stroke="#2b1715" stroke-width="3" stroke-linecap="round"/>
+            </g>
+            <circle cx="61" cy="111" r="5" fill="#d98579" opacity=".45"/>
+            <circle cx="123" cy="111" r="5" fill="#d98579" opacity=".45"/>
+            <path class="mithu-mouth mithu-mouth-smile" d="M79 116q13 15 27 0" fill="none" stroke="#6b2b2d" stroke-width="4" stroke-linecap="round"/>
+            <path class="mithu-mouth mithu-mouth-o" d="M91 117c8 0 8 12 0 12s-8-12 0-12Z" fill="#6b2b2d"/>
+          </g>
+
+          <g class="mithu-body">
+            <path d="M58 143q34-20 68 0l12 47H46Z" fill="url(#mithuBodyGrad)"/>
+            <path d="M76 144l16 18 16-18" fill="none" stroke="#f2d8aa" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="92" cy="170" r="13" fill="url(#mithuGoldGrad)"/>
+            <text x="92" y="174" text-anchor="middle" font-size="11" font-family="Arial,sans-serif" font-weight="800" fill="#4a1219">TK</text>
+          </g>
+
+          <g class="mithu-arm mithu-arm-left">
+            <path d="M56 151q-22 9-24 30" fill="none" stroke="#e6b47c" stroke-width="12" stroke-linecap="round"/>
+            <circle cx="31" cy="182" r="8" fill="#e6b47c"/>
+          </g>
+          <g class="mithu-arm mithu-arm-right">
+            <path d="M128 151q22 8 26 25" fill="none" stroke="#e6b47c" stroke-width="12" stroke-linecap="round"/>
+            <circle cx="155" cy="177" r="8" fill="#e6b47c"/>
+          </g>
+        </g>
+      </svg>
+      <span class="mithu-online-dot" aria-hidden="true"></span>
+    </button>
+  </aside>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <a class="whatsapp-fab" href="https://wa.me/919662097395?text=Hi%20Tasty%20Kitchen%2C%20I%27d%20like%20to%20know%20more%20about%20your%20sweets." id="whatsappFab" target="_blank" rel="noopener" aria-label="Chat with Tasty Kitchen on WhatsApp">
