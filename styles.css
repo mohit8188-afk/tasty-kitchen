@@ -1342,3 +1342,222 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   }
   .gifting-form{padding:16px}
 }
+
+
+/* Task 33: Mithu — original lightweight SVG mascot guide */
+.mithu-guide{
+  position:fixed;
+  z-index:230;
+  left:18px;
+  bottom:18px;
+  display:flex;
+  align-items:flex-end;
+  gap:10px;
+  pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;
+}
+.mithu-guide.is-hidden{
+  opacity:0;
+  transform:translateY(18px) scale(.92);
+  pointer-events:none;
+}
+.mithu-avatar{
+  position:relative;
+  width:92px;
+  height:106px;
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  pointer-events:auto;
+  filter:drop-shadow(0 12px 20px rgba(45,11,16,.16));
+  transition:transform .2s ease;
+}
+.mithu-avatar:hover{transform:translateY(-3px)}
+.mithu-svg{width:100%;height:100%;overflow:visible}
+.mithu-online-dot{
+  position:absolute;
+  right:7px;
+  bottom:8px;
+  width:13px;
+  height:13px;
+  border:3px solid #fff8ef;
+  border-radius:50%;
+  background:#2d9b66;
+  box-shadow:0 2px 6px rgba(0,0,0,.16);
+}
+.mithu-bubble{
+  width:min(310px,calc(100vw - 138px));
+  margin-bottom:24px;
+  padding:15px 16px 14px;
+  border:1px solid rgba(67,17,23,.10);
+  border-radius:20px 20px 20px 6px;
+  background:rgba(255,250,243,.96);
+  box-shadow:0 18px 48px rgba(45,11,16,.18);
+  backdrop-filter:blur(14px);
+  opacity:0;
+  transform:translateX(-10px) translateY(8px) scale(.97);
+  pointer-events:none;
+  transition:opacity .22s ease,transform .22s ease;
+}
+.mithu-guide.is-open .mithu-bubble{
+  opacity:1;
+  transform:none;
+  pointer-events:auto;
+}
+.mithu-close{
+  position:absolute;
+  width:28px;
+  height:28px;
+  margin:-7px 0 0 262px;
+  border:0;
+  border-radius:50%;
+  background:#f4e7d6;
+  color:#5a1820;
+  font-size:18px;
+  line-height:1;
+  cursor:pointer;
+}
+.mithu-name{
+  margin:0 28px 6px 0;
+  color:#8b674d;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+.mithu-message{
+  margin:0;
+  color:#3c2422;
+  font-size:13px;
+  line-height:1.55;
+}
+.mithu-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:11px;
+}
+.mithu-actions button{
+  min-height:34px;
+  padding:0 12px;
+  border:1px solid rgba(67,17,23,.16);
+  border-radius:999px;
+  background:#fff;
+  color:#431117;
+  font:inherit;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+.mithu-actions button:first-child{
+  border-color:#431117;
+  background:#431117;
+  color:#fff8ef;
+}
+
+/* expression system */
+.mithu-blink{opacity:0}
+.mithu-eyes{transform-origin:center}
+.mithu-mouth-o{opacity:0}
+.mithu-arm-left{
+  transform-box:fill-box;
+  transform-origin:80% 25%;
+}
+.mithu-arm-right{
+  transform-box:fill-box;
+  transform-origin:20% 25%;
+}
+.mithu-float{
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:mithuFloat 3.6s ease-in-out infinite;
+}
+.mithu-guide[data-mood="point"] .mithu-arm-right{
+  animation:mithuPoint 1.2s ease-in-out infinite alternate;
+}
+.mithu-guide[data-mood="celebrate"] .mithu-arm-left{
+  animation:mithuWave .55s ease-in-out 4 alternate;
+}
+.mithu-guide[data-mood="celebrate"] .mithu-arm-right{
+  animation:mithuWaveRight .55s ease-in-out 4 alternate;
+}
+.mithu-guide[data-mood="curious"] .mithu-float{
+  animation:mithuCurious 2.8s ease-in-out infinite;
+}
+.mithu-guide[data-mood="curious"] .mithu-mouth-smile{opacity:0}
+.mithu-guide[data-mood="curious"] .mithu-mouth-o{opacity:1}
+.mithu-guide[data-mood="happy"] .mithu-arm-left{
+  animation:mithuWave 1.25s ease-in-out 2 alternate;
+}
+.mithu-guide:not(.is-hidden) .mithu-eyes{
+  animation:mithuEyesVisible 5.2s infinite;
+}
+.mithu-guide:not(.is-hidden) .mithu-blink{
+  animation:mithuBlink 5.2s infinite;
+}
+@keyframes mithuFloat{
+  0%,100%{transform:translateY(0) rotate(-.4deg)}
+  50%{transform:translateY(-4px) rotate(.4deg)}
+}
+@keyframes mithuWave{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(18deg) translate(-2px,-3px)}
+}
+@keyframes mithuWaveRight{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(-18deg) translate(2px,-3px)}
+}
+@keyframes mithuPoint{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(-20deg) translate(5px,-6px)}
+}
+@keyframes mithuCurious{
+  0%,100%{transform:translateY(0) rotate(0)}
+  50%{transform:translateY(-3px) rotate(2.5deg)}
+}
+@keyframes mithuEyesVisible{
+  0%,44%,48%,100%{opacity:1}
+  45%,47%{opacity:0}
+}
+@keyframes mithuBlink{
+  0%,44%,48%,100%{opacity:0}
+  45%,47%{opacity:1}
+}
+
+/* Do not compete with product/sample/payment overlays. */
+.product-layer.is-open ~ .mithu-guide,
+.sample-layer.is-open ~ .mithu-guide,
+.checkout-layer.is-open ~ .mithu-guide,
+.payment-layer.is-open ~ .mithu-guide{
+  z-index:260;
+}
+@media(max-width:640px){
+  .mithu-guide{
+    left:8px;
+    bottom:calc(8px + env(safe-area-inset-bottom));
+  }
+  .mithu-avatar{
+    width:74px;
+    height:86px;
+  }
+  .mithu-bubble{
+    width:min(265px,calc(100vw - 98px));
+    margin-bottom:20px;
+    padding:13px 14px 12px;
+    border-radius:18px 18px 18px 5px;
+  }
+  .mithu-close{
+    margin-left:calc(min(265px,calc(100vw - 98px)) - 40px);
+  }
+  .mithu-message{font-size:12px}
+  .mithu-actions button{font-size:10px}
+  .whatsapp-fab{bottom:calc(14px + env(safe-area-inset-bottom))}
+  .mobile-action-bar.show ~ .mithu-guide{bottom:86px}
+}
+@media(prefers-reduced-motion:reduce){
+  .mithu-float,.mithu-arm-left,.mithu-arm-right,.mithu-eyes,.mithu-blink{
+    animation:none!important;
+  }
+  .mithu-guide,.mithu-bubble,.mithu-avatar{transition:none!important}
+}
