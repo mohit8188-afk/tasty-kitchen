@@ -596,7 +596,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
 
     sessionStorage.removeItem('tkSampleDraft');
     form.reset();
-    showToast('Sample request received. We will confirm the route and delivery slot before delivery.');
+    showToast('Sample request received. Reference: '+(data.sample_ref || data.request_id)+'. We will confirm the route and delivery slot before delivery.');
     setLayer(document.getElementById('sampleLayer'),false);
   }catch{
     sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
