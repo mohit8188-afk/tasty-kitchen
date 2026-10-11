@@ -628,3 +628,20 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
     pointer-events:none;
   }
 }
+
+
+/* Point 5: sample request control cues */
+.sample-controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.sample-controls span{
+  padding:8px 10px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid rgba(67,17,23,.1);
+  color:#6e4f4c;
+  font-size:10px;
+  font-weight:700;
+}
