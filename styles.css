@@ -1229,3 +1229,116 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   .review-capture{padding:20px;border-radius:22px}
   .review-capture-copy h3{font-size:31px}
 }
+
+
+/* Point 29: discreet bulk / corporate gifting route */
+.gifting-section{
+  padding:26px 0 92px;
+  background:#f8efe4;
+}
+.gifting-inner{
+  width:min(1180px,calc(100% - 40px));
+  margin:auto;
+  display:grid;
+  grid-template-columns:.82fr 1.18fr;
+  gap:34px;
+  align-items:start;
+  padding:30px;
+  border:1px solid rgba(67,17,23,.10);
+  border-radius:30px;
+  background:#fffaf3;
+  box-shadow:0 14px 40px rgba(67,17,23,.05);
+}
+.gifting-copy h2{
+  margin:10px 0 14px;
+  font-family:"Playfair Display",serif;
+  font-size:clamp(38px,4.5vw,58px);
+  line-height:.98;
+  letter-spacing:-.035em;
+  color:#431117;
+}
+.gifting-copy p{
+  max-width:540px;
+  color:#725b56;
+  font-size:13px;
+  line-height:1.7;
+}
+.gifting-points{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:18px;
+}
+.gifting-points span{
+  padding:7px 10px;
+  border-radius:999px;
+  background:#f1e4c9;
+  color:#5a1820;
+  font-size:10px;
+  font-weight:700;
+}
+.gifting-form{
+  display:grid;
+  gap:12px;
+  padding:20px;
+  border-radius:22px;
+  background:#f7ead9;
+}
+.gifting-products{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin:0;
+  padding:12px;
+  border:1px solid rgba(67,17,23,.10);
+  border-radius:16px;
+}
+.gifting-products legend{
+  padding:0 4px;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#7b615d;
+}
+.gifting-products label{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:#4d3733;
+}
+.gifting-products input{width:auto}
+.optional-label{
+  font-size:9px;
+  font-weight:600;
+  color:#9b766c;
+}
+.gifting-submit{
+  min-height:54px;
+  border:1px solid #431117;
+  border-radius:999px;
+  background:#431117;
+  color:#fff8ef;
+  font:inherit;
+  font-weight:800;
+  cursor:pointer;
+}
+.gifting-submit:disabled{opacity:.65;cursor:wait}
+#giftingStatus{
+  color:#7b615d;
+  line-height:1.5;
+}
+@media(max-width:800px){
+  .gifting-inner{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .gifting-section{padding:18px 0 76px}
+  .gifting-inner{
+    width:calc(100% - 24px);
+    padding:20px;
+    border-radius:24px;
+  }
+  .gifting-form{padding:16px}
+}
