@@ -940,7 +940,7 @@ function handleMithuAction(action){
     trackEvent('sample_form_start',{product_id:activeProduct?.id || PRODUCTS[0].id,metadata:{source:'mithu'}});
     openSampleRequest(activeProduct?.id || PRODUCTS[0].id);
   }else if(action==='products'){
-    document.getElementById('products')?.scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
+    document.getElementById('collection')?.scrollIntoView({behavior:reducedMotion.matches?'auto':'smooth',block:'start'});
     renderMithuScene('products',false);
     setMithuOpen(false,false);
   }else if(action==='order'){
@@ -955,18 +955,16 @@ mithuAvatar?.addEventListener('click',()=>{
   if(mithuGuide.classList.contains('is-hidden')) showMithu();
   setMithuOpen(!mithuGuide.classList.contains('is-open'));
 });
-mithuClose?.addEventListener('click',hideMithu);
+mithuClose?.addEventListener('click',()=>setMithuOpen(false,false));
 mithuActions?.addEventListener('click',e=>{
   const btn=e.target.closest('[data-mithu-action]');
   if(btn) handleMithuAction(btn.dataset.mithuAction);
 });
 
-if(localStorage.getItem(MITHU_HIDE_KEY)==='1'){
-  mithuGuide?.classList.add('is-hidden');
-}else{
-  clearTimeout(mithuAutoTimer);
-  mithuAutoTimer=setTimeout(()=>renderMithuScene('welcome',true),2200);
-}
+localStorage.removeItem(MITHU_HIDE_KEY);
+mithuGuide?.classList.remove('is-hidden');
+clearTimeout(mithuAutoTimer);
+mithuAutoTimer=setTimeout(()=>renderMithuScene('welcome',true),2200);
 
 const TK_REVIEW_SUBMIT_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-review-submit';
 const TK_PUBLIC_REVIEWS_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-public-reviews';
@@ -1177,9 +1175,9 @@ if('IntersectionObserver' in window){
       if(!entry.isIntersecting || productLayer.classList.contains('is-open') || document.getElementById('sampleLayer')?.classList.contains('is-open')) return;
       if(entry.target.id==='corporate-gifting') renderMithuScene('gifting',true);
       else if(entry.target.id==='reviews') renderMithuScene('reviews',true);
-      else if(entry.target.id==='products') renderMithuScene('products',true);
+      else if(entry.target.id==='collection') renderMithuScene('products',true);
     }),{threshold:.35});
-    ['products','reviews','corporate-gifting'].forEach(id=>{
+    ['collection','reviews','corporate-gifting'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) guideObserver.observe(el);
     });
