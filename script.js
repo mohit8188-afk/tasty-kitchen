@@ -622,8 +622,10 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     if(!res.ok){
       const messages={
         active_sample_exists:data.sample_ref ? 'A sample request is already active. Reference: '+data.sample_ref : 'A sample request is already active for this mobile number.',
+        sample_cooldown:data.sample_ref ? 'A free sample was already used recently. Reference: '+data.sample_ref+'. Please try again after the '+(data.cooldown_days || 30)+'-day sample window.' : 'A free sample was already used recently for this mobile number.',
         date_closed:'Sample requests are closed for this date.',
-        date_full:'Sample slots are full for this date. Please choose another date.'
+        date_full:'Sample slots are full for this date. Please choose another date.',
+        date_outside_window:'Please choose a date within the available sample booking window.'
       };
       showToast(messages[data.error] || data.message || 'We could not submit the sample request. Please try again.');
       return;
@@ -689,7 +691,7 @@ document.getElementById('sampleAddressForm').addEventListener('submit',async e=>
     const data=await res.json().catch(()=>({}));
     if(!res.ok){
       const messages={
-        address_sample_exists:'A sample request is already active for this address/locality.',
+        address_sample_exists:'A free sample was already requested recently for this address/locality. Please use the existing request or wait for the sample window to reopen.',
         outside_service_area:'This PIN code is not currently in our Ahmedabad sample route.',
         sample_verification_failed:'We could not verify this Sample ID with the mobile number.'
       };
