@@ -706,9 +706,8 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
   setLayer(paymentLayer,true);
 });
 
-document.getElementById('whatsappFab').addEventListener('click',e=>{
-  e.preventDefault();
-  showToast('WhatsApp support is not available yet.');
+document.getElementById('whatsappFab').addEventListener('click',()=>{
+  // Direct WhatsApp entry; AI automation will be layered onto the same business number later.
 });
 
 function showToast(message){
