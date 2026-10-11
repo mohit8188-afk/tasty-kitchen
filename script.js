@@ -852,6 +852,84 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
   setLayer(paymentLayer,true);
 });
 
+
+const TK_REVIEW_SUBMIT_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-review-submit';
+const TK_PUBLIC_REVIEWS_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-public-reviews';
+
+function escapeHtml(value){
+  return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+async function loadPublicReviews(){
+  const grid=document.getElementById('reviewsGrid');
+  if(!grid) return;
+  try{
+    const res=await fetch(TK_PUBLIC_REVIEWS_URL,{headers:{'Accept':'application/json'}});
+    const data=await res.json().catch(()=>({reviews:[]}));
+    const reviews=Array.isArray(data.reviews)?data.reviews:[];
+    if(!res.ok || !reviews.length){
+      grid.hidden=true;
+      grid.innerHTML='';
+      return;
+    }
+    grid.innerHTML=reviews.map(r=>`
+      <article class="review-card">
+        <div class="review-stars" aria-label="${Number(r.rating)||0} out of 5 stars">${'★'.repeat(Number(r.rating)||0)}${'☆'.repeat(Math.max(0,5-(Number(r.rating)||0)))}</div>
+        <blockquote>“${escapeHtml(r.review_text)}”</blockquote>
+        <p><strong>${escapeHtml(r.display_name)}</strong>${r.city?' • '+escapeHtml(r.city):''}<span>Verified ${r.source_type==='order'?'buyer':'sample recipient'}</span></p>
+      </article>`).join('');
+    grid.hidden=false;
+  }catch{
+    grid.hidden=true;
+  }
+}
+
+document.getElementById('reviewForm')?.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const form=e.currentTarget;
+  if(!form.reportValidity()) return;
+  const submit=form.querySelector('button[type="submit"]');
+  const status=document.getElementById('reviewStatus');
+  const payload={
+    source_ref:document.getElementById('reviewRef').value.trim(),
+    mobile:document.getElementById('reviewMobile').value.trim(),
+    display_name:document.getElementById('reviewName').value.trim(),
+    rating:Number(document.getElementById('reviewRating').value),
+    review_text:document.getElementById('reviewText').value.trim(),
+    consent_to_publish:document.getElementById('reviewConsent').checked
+  };
+  submit.disabled=true;
+  const original=submit.textContent;
+  submit.textContent='Verifying…';
+  try{
+    const res=await fetch(TK_REVIEW_SUBMIT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){
+      const messages={
+        invalid_reference:'Please enter a valid TKS or TKO reference.',
+        verification_failed:'We could not match this reference with the mobile number used for the request.',
+        not_eligible_yet:'Feedback opens after the sample or order has been marked delivered.',
+        review_exists:'Feedback has already been submitted for this reference.'
+      };
+      status.textContent=messages[data.error] || data.message || 'We could not submit your feedback. Please check the details and try again.';
+      return;
+    }
+    form.reset();
+    status.textContent='Thank you. Your verified feedback has been received and will be reviewed before any public display.';
+  }catch{
+    status.textContent='Network issue. Please try again.';
+  }finally{
+    submit.disabled=false;
+    submit.textContent=original;
+  }
+});
+
+loadPublicReviews();
+
 document.getElementById('whatsappFab').addEventListener('click',()=>{
   // Direct WhatsApp entry; AI automation will be layered onto the same business number later.
 });
