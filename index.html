@@ -208,6 +208,51 @@
         </aside>
       </div>
     </section>
+
+    <section class="reviews-section" id="reviews">
+      <div class="reviews-inner">
+        <div class="section-head">
+          <div>
+            <p class="kicker">Real customer feedback</p>
+            <h2>Tasted it already?<br><em>Tell us what you think.</em></h2>
+          </div>
+          <p class="section-copy">Public reviews appear only after we verify the Sample ID or Order ID, confirm delivery, receive permission to publish, and approve the feedback. No placeholder or fabricated reviews are shown.</p>
+        </div>
+
+        <div class="reviews-grid" id="reviewsGrid" hidden aria-live="polite"></div>
+
+        <div class="review-capture">
+          <div class="review-capture-copy">
+            <span class="review-badge">Verified feedback only</span>
+            <h3>Share your Tasty Kitchen experience</h3>
+            <p>If your sample or order has been delivered, use its TKS/TKO reference and the same mobile number used for the request. Your review is never published without your consent.</p>
+          </div>
+          <form id="reviewForm" class="review-form">
+            <div class="field-row">
+              <label>Sample / Order ID<input id="reviewRef" required placeholder="TKS-... or TKO-..." autocomplete="off"></label>
+              <label>Mobile<input id="reviewMobile" type="tel" pattern="[6-9][0-9]{9}" maxlength="10" required inputmode="tel" placeholder="10-digit mobile"></label>
+            </div>
+            <div class="field-row">
+              <label>Name to display<input id="reviewName" required maxlength="80" placeholder="Your name"></label>
+              <label>Rating
+                <select id="reviewRating" required>
+                  <option value="">Choose</option>
+                  <option value="5">5 — Loved it</option>
+                  <option value="4">4 — Very good</option>
+                  <option value="3">3 — Good</option>
+                  <option value="2">2 — Could be better</option>
+                  <option value="1">1 — Disappointed</option>
+                </select>
+              </label>
+            </div>
+            <label>Your feedback<textarea id="reviewText" required minlength="10" maxlength="1000" rows="4" placeholder="Tell us about taste, freshness, packaging or your overall experience."></textarea></label>
+            <label class="review-consent"><input id="reviewConsent" type="checkbox"> <span>I allow Tasty Kitchen to publish this review with my display name and city after moderation.</span></label>
+            <button class="primary-btn" type="submit">Submit verified feedback</button>
+            <small id="reviewStatus">Feedback is accepted only for delivered samples/orders and is reviewed before publication.</small>
+          </form>
+        </div>
+      </div>
+    </section>
   </main>
 
   <section class="product-layer" id="productLayer" aria-hidden="true" inert>
