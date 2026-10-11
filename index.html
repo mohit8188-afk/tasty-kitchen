@@ -27,18 +27,19 @@
       <div class="hero-glow glow-two"></div>
       <div class="hero-inner">
         <div class="hero-copy">
-          <p class="kicker">Three festive sweets • made fresh</p>
-          <h1>Festive mithaas,<br><em>made beautifully.</em></h1>
-          <p class="hero-text">Three festive favourites from Tasty Kitchen — Makhana Mewa Bites, Coconut Mewa Ladoo and Jalebi with Rabdi — with 250g and 500g packs.</p>
+          <p class="kicker">Ahmedabad • free festive samples</p>
+          <h1>Taste first.<br><em>Order with confidence.</em></h1>
+          <p class="hero-text">Not sure which sweet to choose? Try a complimentary Tasty Kitchen sample in Ahmedabad, then place your 250g or 500g order when you are ready.</p>
           <div class="hero-actions">
-            <a class="primary-btn" href="#collection">Explore the collection</a>
-            <a class="hero-order-link" href="#product/makhana-mewa-bites">View Makhana Mewa Bites <span>↗</span></a>
+            <button class="primary-btn hero-sample-btn" id="heroSampleBtn" type="button">Request free sample</button>
+            <a class="hero-order-link" href="#collection">Explore all 3 sweets <span>↓</span></a>
           </div>
+          <p class="hero-sample-note">No payment for samples • Ahmedabad only • subject to daily route availability</p>
           <div class="hero-trust" aria-label="Ordering highlights">
-            <span>Fresh on order</span>
+            <span>Free sample • Ahmedabad</span>
+            <span>3 festive sweets</span>
             <span>250g & 500g packs</span>
-            <span>Delivery across India*</span>
-            <span>Free samples • Ahmedabad</span>
+            <span>Full orders • India-wide*</span>
           </div>
         </div>
 
@@ -65,9 +66,9 @@
       <div class="section-head">
         <div>
           <p class="kicker">Festive collection</p>
-          <h2>Choose your sweet.</h2>
+          <h2>See it. Taste it. Then choose.</h2>
         </div>
-        <p class="section-copy">Three sweets, two simple pack sizes. Explore the range, request a free Ahmedabad sample, or prepare a full order for delivery.</p>
+        <p class="section-copy">Explore all three sweets, view the product presentation, and request a complimentary Ahmedabad sample before committing to a full order.</p>
       </div>
 
       <div class="product-grid" id="productGrid" aria-live="polite"></div>
@@ -135,16 +136,26 @@
       <button class="sheet-close" type="button" data-close-sample aria-label="Close sample request">×</button>
       <p class="kicker">Ahmedabad only • no payment</p>
       <h3 id="sampleTitle">Request a free sample</h3>
-      <p class="sample-intro">Try <strong id="sampleProduct">this sweet</strong> before placing a full order. Samples are available only within Ahmedabad and are subject to route and daily availability.</p>
+      <p class="sample-intro">Try <strong id="sampleProduct">a Tasty Kitchen sweet</strong> before placing a full order. Samples are complimentary, available only within Ahmedabad, and subject to daily route availability.</p>
       <form id="sampleForm">
-        <input id="sampleSweet" type="hidden">
+        <label>Which sweet would you like to sample?
+          <select id="sampleSweet" required>
+            <option value="makhana-mewa-bites">Makhana Mewa Bites</option>
+            <option value="coconut-mewa-ladoo">Coconut Mewa Ladoo</option>
+            <option value="jalebi-with-rabdi">Jalebi with Rabdi</option>
+          </select>
+        </label>
         <div class="field-row">
           <label>Name<input id="sampleName" autocomplete="name" required placeholder="Your name"></label>
           <label>Mobile<input id="samplePhone" type="tel" pattern="[6-9][0-9]{9}" maxlength="10" autocomplete="tel-national" required inputmode="tel" placeholder="10-digit mobile"></label>
         </div>
         <label>Ahmedabad address<textarea id="sampleAddress" required rows="3" placeholder="Society / area / full Ahmedabad address"></textarea></label>
+        <div class="field-row">
+          <label>Area / locality<input id="sampleArea" required placeholder="e.g. Shela, Bopal, Shantigram"></label>
+          <label>PIN code<input id="samplePin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="6-digit PIN"></label>
+        </div>
         <label>Preferred sample date<input id="sampleDate" type="date" required></label>
-        <div class="sample-note"><strong>₹0 payment</strong><span>No card or UPI is required for a sample request.</span></div>
+        <div class="sample-note"><strong>₹0 payment</strong><span>No card or UPI required. One sample request per household/mobile, subject to availability.</span></div>
         <button class="primary-btn" type="submit">Request sample</button>
         <small class="preview-warning">Sample-request submission will be activated with the order backend before marketing begins.</small>
       </form>
