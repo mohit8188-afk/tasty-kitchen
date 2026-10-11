@@ -170,7 +170,12 @@
           <label>PIN code<input id="samplePin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required placeholder="6-digit PIN"></label>
         </div>
         <label>Preferred sample date<input id="sampleDate" type="date" required></label>
-        <div class="sample-note"><strong>₹0 payment</strong><span>No card or UPI required. One sample request per household/mobile, subject to availability.</span></div>
+        <div class="sample-controls">
+          <span>1 active request per mobile</span>
+          <span>Address + locality checked</span>
+          <span>Date slot required</span>
+        </div>
+        <div class="sample-note"><strong>₹0 payment</strong><span>No card or UPI required. Requests are checked by mobile, address, locality and selected date before confirmation.</span></div>
         <button class="primary-btn" type="submit">Request sample</button>
         <small class="preview-warning">Sample-request submission will be activated with the order backend before marketing begins.</small>
       </form>
