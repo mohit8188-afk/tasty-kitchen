@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tasty Kitchen — Festive Sweets</title>
-  <meta name="description" content="Tasty Kitchen festive sweets made fresh in Ahmedabad." />
+  <meta name="description" content="Tasty Kitchen festive sweets with delivery across India and free sample requests in Ahmedabad." />
   <meta name="theme-color" content="#431117" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,17 +27,18 @@
       <div class="hero-glow glow-two"></div>
       <div class="hero-inner">
         <div class="hero-copy">
-          <p class="kicker">Fresh festive batches • Ahmedabad</p>
+          <p class="kicker">Three festive sweets • made fresh</p>
           <h1>Festive mithaas,<br><em>made beautifully.</em></h1>
-          <p class="hero-text">Makhana Mewa Bites — made fresh with dates, nuts, makhana and ghee. A premium festive sweet for family moments and thoughtful gifting.</p>
+          <p class="hero-text">Three festive favourites from Tasty Kitchen — Makhana Mewa Bites, Coconut Mewa Ladoo and Jalebi with Rabdi — with 250g and 500g packs.</p>
           <div class="hero-actions">
             <a class="primary-btn" href="#collection">Explore the collection</a>
             <a class="hero-order-link" href="#product/makhana-mewa-bites">View Makhana Mewa Bites <span>↗</span></a>
           </div>
           <div class="hero-trust" aria-label="Ordering highlights">
             <span>Fresh on order</span>
-            <span>100% advance</span>
-            <span>Ahmedabad delivery</span>
+            <span>250g & 500g packs</span>
+            <span>Delivery across India*</span>
+            <span>Free samples • Ahmedabad</span>
           </div>
         </div>
 
@@ -50,7 +51,7 @@
           <div class="hero-product-label">
             <span>Signature festive sweet</span>
             <strong>Makhana Mewa Bites</strong>
-            <small>From ₹449 • 200g festive box</small>
+            <small>Available in 250g & 500g packs</small>
           </div>
           <i class="festive-speck speck-a" aria-hidden="true"></i>
           <i class="festive-speck speck-b" aria-hidden="true"></i>
@@ -66,14 +67,14 @@
           <p class="kicker">Festive collection</p>
           <h2>Choose your sweet.</h2>
         </div>
-        <p class="section-copy">Small batches. Thoughtful ingredients. Choose a sweet to discover its story and find your festive box.</p>
+        <p class="section-copy">Three sweets, two simple pack sizes. Explore the range, request a free Ahmedabad sample, or prepare a full order for delivery.</p>
       </div>
 
       <div class="product-grid" id="productGrid" aria-live="polite"></div>
 
       <div class="future-note">
         <span class="future-dot"></span>
-        <p><strong>A little care in every box.</strong> Freshly prepared in Ahmedabad, for moments worth sharing.</p>
+        <p><strong>A little care in every box.</strong> Full orders are planned for delivery across India. Free samples are available only in Ahmedabad.</p>
       </div>
     </section>
   </main>
@@ -109,7 +110,7 @@
             <span class="info-icon">✦</span><span><b>Ingredients</b><small>What goes into it</small></span><i>›</i>
           </button>
           <button class="info-card" type="button" data-info="delivery">
-            <span class="info-icon">⌂</span><span><b>Delivery</b><small>Ahmedabad options</small></span><i>›</i>
+            <span class="info-icon">⌂</span><span><b>Delivery</b><small>India-wide & local sample notes</small></span><i>›</i>
           </button>
           <button class="info-card" type="button" data-info="gifting">
             <span class="info-icon">□</span><span><b>Gifting</b><small>Bulk / festive boxes</small></span><i>›</i>
@@ -119,11 +120,35 @@
         <div class="info-panel" id="infoPanel" role="region" aria-live="polite"></div>
 
         <div class="detail-actions">
-          <button class="primary-btn order-btn" id="openCheckout" type="button">Order this sweet</button>
-          <span class="capacity-note">Advance payment • production slot confirmed after payment</span>
+          <button class="primary-btn order-btn" id="openCheckout" type="button">Order full box</button>
+          <button class="sample-btn" id="openSample" type="button">Request free sample <span>Ahmedabad only</span></button>
+          <span class="capacity-note">Full orders: payment gateway will be connected before marketing launch.</span>
         </div>
       </div>
     </article>
+  </section>
+
+
+  <section class="sample-layer" id="sampleLayer" aria-hidden="true" inert>
+    <div class="checkout-backdrop" data-close-sample></div>
+    <div class="sample-sheet" role="dialog" aria-modal="true" aria-labelledby="sampleTitle">
+      <button class="sheet-close" type="button" data-close-sample aria-label="Close sample request">×</button>
+      <p class="kicker">Ahmedabad only • no payment</p>
+      <h3 id="sampleTitle">Request a free sample</h3>
+      <p class="sample-intro">Try <strong id="sampleProduct">this sweet</strong> before placing a full order. Samples are available only within Ahmedabad and are subject to route and daily availability.</p>
+      <form id="sampleForm">
+        <input id="sampleSweet" type="hidden">
+        <div class="field-row">
+          <label>Name<input id="sampleName" autocomplete="name" required placeholder="Your name"></label>
+          <label>Mobile<input id="samplePhone" type="tel" pattern="[6-9][0-9]{9}" maxlength="10" autocomplete="tel-national" required inputmode="tel" placeholder="10-digit mobile"></label>
+        </div>
+        <label>Ahmedabad address<textarea id="sampleAddress" required rows="3" placeholder="Society / area / full Ahmedabad address"></textarea></label>
+        <label>Preferred sample date<input id="sampleDate" type="date" required></label>
+        <div class="sample-note"><strong>₹0 payment</strong><span>No card or UPI is required for a sample request.</span></div>
+        <button class="primary-btn" type="submit">Request sample</button>
+        <small class="preview-warning">Sample-request submission will be activated with the order backend before marketing begins.</small>
+      </form>
+    </div>
   </section>
 
   <section class="checkout-layer" id="checkoutLayer" aria-hidden="true" inert>
@@ -139,7 +164,7 @@
           <label>Name<input id="customerName" autocomplete="name" required placeholder="Your name"></label>
           <label>Mobile<input id="customerPhone" type="tel" pattern="[6-9][0-9]{9}" maxlength="10" autocomplete="tel-national" required inputmode="tel" placeholder="10-digit mobile"></label>
         </div>
-        <label>Delivery address<textarea id="customerAddress" autocomplete="street-address" required rows="3" placeholder="Society / area / full Ahmedabad address"></textarea></label>
+        <label>Delivery address<textarea id="customerAddress" autocomplete="street-address" required rows="3" placeholder="Full delivery address with city, state and PIN code"></textarea></label>
         <div class="field-row">
           <label>Delivery<input id="deliveryDate" required type="date"></label>
           <label>Quantity<input id="quantity" required step="1" type="number" min="1" max="20" value="1"></label>
@@ -182,7 +207,7 @@
       <span class="brand-seal">TK</span>
       <span class="brand-copy"><strong>Tasty Kitchen</strong><small>Homemade festive food • Ahmedabad</small></span>
     </div>
-    <p>Preview site • final photos, WhatsApp number, FSSAI, policies and live payment gateway will be added before launch.</p>
+    <p>Preview site • final prices, remaining product photos, sample/order backend, WhatsApp automation, FSSAI details, policies and payment gateway will be completed before marketing launch.</p>
   </footer>
 
   <script src="script.js"></script>
