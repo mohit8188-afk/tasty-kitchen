@@ -514,10 +514,12 @@ document.querySelectorAll('[data-close-sample]').forEach(el=>el.addEventListener
   const layer=document.getElementById('sampleLayer');
   if(layer.classList.contains('is-open')) setLayer(layer,false);
 }));
-document.getElementById('sampleForm').addEventListener('submit',e=>{
+document.getElementById('sampleForm').addEventListener('submit',async e=>{
   e.preventDefault();
   if(!e.currentTarget.reportValidity()) return;
 
+  const form=e.currentTarget;
+  const submit=form.querySelector('button[type="submit"]');
   const phone=document.getElementById('samplePhone').value.trim();
   const address=document.getElementById('sampleAddress').value.trim().replace(/\s+/g,' ');
   const area=document.getElementById('sampleArea').value.trim().replace(/\s+/g,' ');
@@ -537,10 +539,56 @@ document.getElementById('sampleForm').addEventListener('submit',e=>{
     return;
   }
 
-  const draft={phone,address,area,pin,date,sweet:document.getElementById('sampleSweet').value,createdAt:Date.now()};
-  sessionStorage.setItem('tkSampleDraft',JSON.stringify(draft));
-  showToast('Request details validated. CRM duplicate and daily-slot checks will run before confirmation.');
-  setLayer(document.getElementById('sampleLayer'),false);
+  const qs=new URLSearchParams(location.search);
+  const payload={
+    name:document.getElementById('sampleName').value.trim(),
+    mobile:phone,
+    address,
+    locality:area,
+    pincode:pin,
+    preferred_date:date,
+    product_id:document.getElementById('sampleSweet').value,
+    source:'website',
+    utm_source:qs.get('utm_source'),
+    utm_medium:qs.get('utm_medium'),
+    utm_campaign:qs.get('utm_campaign'),
+    utm_content:qs.get('utm_content')
+  };
+
+  submit.disabled=true;
+  const original=submit.textContent;
+  submit.textContent='Checking availability…';
+
+  try{
+    const res=await fetch('https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-sample-request',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){
+      const messages={
+        active_sample_exists:'A sample request is already active for this mobile number.',
+        address_sample_exists:'A sample request is already active for this address/locality.',
+        outside_service_area:'This PIN code is not currently in our Ahmedabad sample route.',
+        date_closed:'Sample requests are closed for this date.',
+        date_full:'Sample slots are full for this date. Please choose another date.'
+      };
+      showToast(messages[data.error] || data.message || 'We could not submit the sample request. Please try again.');
+      return;
+    }
+
+    sessionStorage.removeItem('tkSampleDraft');
+    form.reset();
+    showToast('Sample request received. We will confirm availability before delivery.');
+    setLayer(document.getElementById('sampleLayer'),false);
+  }catch{
+    sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
+    showToast('Network issue. Your details are kept on this device; please try again.');
+  }finally{
+    submit.disabled=false;
+    submit.textContent=original;
+  }
 });
 
 document.getElementById('openCheckout').addEventListener('click',()=>{
