@@ -11,7 +11,9 @@ const PRODUCTS = [
       {label:'500g', price:770, preview:false}
     ],
     ingredients: ['Makhana','Dates','Cashew','Almond','Raisins','Desiccated coconut','Ghee','Limited added sugar'],
-    delivery: 'Free delivery across India. Free sample requests are limited to the Ahmedabad + nearby sample route. Dispatch timing is confirmed with the order.',
+    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. Free sample requests are limited to the Ahmedabad + nearby sample route.',
+    care: 'Keep the box sealed in a cool, dry place away from direct heat and moisture. For best texture and flavour, enjoy fresh and follow the best-before / use-by guidance printed on the pack.',
+    allergens: 'Contains tree nuts (cashew and almond) and milk-derived ghee. Contains coconut. Prepared in a home kitchen where other food allergens may also be handled.',
     gifting: 'Available in 250g and 500g festive boxes. For larger gifting quantities, contact Tasty Kitchen for availability.',
     colors: ['#401015','#7b2d37','#d4a15d'],
     media: [
@@ -36,7 +38,9 @@ const PRODUCTS = [
       {label:'500g', price:380, preview:false}
     ],
     ingredients: ['Coconut','Cashew','Almond','Raisins','Ghee','Final recipe to be confirmed'],
-    delivery: 'Free delivery across India. Free sample requests are limited to the Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. Free sample requests are limited to the Ahmedabad + nearby sample route.',
+    care: 'Keep sealed in a cool, dry place away from direct heat and moisture. For best taste and texture, enjoy fresh and follow the best-before / use-by guidance printed on the pack.',
+    allergens: 'Contains tree nuts (cashew and almond) and milk-derived ghee. Contains coconut. Prepared in a home kitchen where other food allergens may also be handled.',
     gifting: 'Available in 250g and 500g festive boxes. Larger gifting quantities are subject to availability.',
     colors: ['#5b241d','#b86e4a','#f1d8a9'],
     media: [
@@ -59,7 +63,9 @@ const PRODUCTS = [
       {label:'500g', price:940, preview:false}
     ],
     ingredients: ['Desi ghee jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
-    delivery: 'Free delivery for Desi Ghee Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Free sample requests use the same Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery for Desi Ghee Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Prepared fresh for a confirmed local delivery slot; route timing is shared with the order. Free sample requests use the same Ahmedabad + nearby sample route.',
+    care: 'Keep the rabdi refrigerated on receipt. For the best experience, enjoy the jalebi and rabdi as fresh as possible and follow the use-by guidance supplied with the pack. Do not leave the rabdi unrefrigerated for extended periods.',
+    allergens: 'Contains milk/dairy (rabdi and desi ghee). The final jalebi ingredient declaration will be printed on the pack; if you have a cereal/gluten allergy or another severe food allergy, please confirm with Tasty Kitchen before ordering.',
     gifting: 'Available in 250g and 500g packs for Ahmedabad + nearby serviceable areas.',
     colors: ['#5a210d','#c76a13','#f4c56a'],
     media: [
@@ -406,7 +412,9 @@ document.querySelectorAll('.info-card').forEach(btn=>{
     btn.setAttribute('aria-expanded','true');
     let html='';
     if(key==='ingredients') html='<p><strong>Ingredients</strong></p><ul>'+activeProduct.ingredients.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
-    if(key==='delivery') html='<p><strong>Delivery</strong><br>'+activeProduct.delivery+'</p>';
+    if(key==='delivery') html='<p><strong>Dispatch & delivery</strong><br>'+activeProduct.delivery+'</p>';
+    if(key==='care') html='<p><strong>Storage & best use</strong><br>'+activeProduct.care+'</p>';
+    if(key==='allergens') html='<p><strong>Allergen information</strong><br>'+activeProduct.allergens+'</p>';
     if(key==='gifting') html='<p><strong>Gifting</strong><br>'+activeProduct.gifting+'</p>';
     if(key==='photos'){
       if(activeProduct.media?.length){
