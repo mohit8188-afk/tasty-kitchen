@@ -50,16 +50,16 @@ const PRODUCTS = [
   {
     id: 'jalebi-with-rabdi',
     kicker: 'Fresh festive indulgence',
-    name: 'Jalebi with Rabdi',
-    tagline: 'Crisp jalebi paired with rich, creamy rabdi.',
-    description: 'Our third festive sweet brings a classic pairing of crisp jalebi with rich, creamy rabdi to the collection.',
+    name: 'Desi Ghee Jalebi with Rabdi',
+    tagline: 'Crisp desi ghee jalebi paired with rich, creamy rabdi.',
+    description: 'Our third festive sweet brings a classic pairing of crisp desi ghee jalebi with rich, creamy rabdi to the collection.',
     basePack: '250g pack',
     packs: [
-      {label:'250g', price:240, preview:false},
-      {label:'500g', price:480, preview:false}
+      {label:'250g', price:470, preview:false},
+      {label:'500g', price:940, preview:false}
     ],
-    ingredients: ['Jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
-    delivery: 'Jalebi with Rabdi is available for delivery only within Ahmedabad. Free sample requests are also Ahmedabad-only.',
+    ingredients: ['Desi ghee jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
+    delivery: 'Desi Ghee Jalebi with Rabdi is available for delivery only within Ahmedabad and nearby serviceable areas. Free sample requests are also limited to the Ahmedabad + nearby sample route.',
     gifting: '250g and 500g packaging is planned. Final presentation and delivery method are still under testing.',
     colors: ['#5a210d','#c76a13','#f4c56a'],
     media: [
@@ -67,7 +67,7 @@ const PRODUCTS = [
       'assets/jalebi-2.webp',
       'assets/jalebi-3.webp'
     ],
-    photoLabels: ['Jalebi with Rabdi platter','Festive close-up','Premium festive thali'],
+    photoLabels: ['Desi Ghee Jalebi with Rabdi platter','Festive close-up','Premium festive thali'],
     art: 'jalebi'
   }
 ];
