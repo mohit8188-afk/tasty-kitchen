@@ -977,6 +977,7 @@ document.getElementById('giftingForm')?.addEventListener('submit',async e=>{
       status.textContent=data.message || 'We could not submit the gifting enquiry. Please check the details and try again.';
       return;
     }
+    trackEvent('gifting_submit_success',{metadata:{gifting_ref:data.gifting_ref,quantity_range:payload.quantity_range,products:selected}});
     form.reset();
     status.innerHTML='Enquiry received. Reference: <strong>'+escapeHtml(data.gifting_ref)+'</strong>. We’ll confirm capacity, packaging and delivery feasibility before sharing a quote.';
     showToast('Corporate gifting enquiry received: '+data.gifting_ref);
