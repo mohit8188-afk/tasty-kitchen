@@ -89,6 +89,13 @@ const packOptions = document.getElementById('packOptions');
 const infoPanel = document.getElementById('infoPanel');
 const checkoutSummary = document.getElementById('checkoutSummary');
 const checkoutTotal = document.getElementById('checkoutTotal');
+const checkoutProductLine = document.getElementById('checkoutProductLine');
+const checkoutPackLine = document.getElementById('checkoutPackLine');
+const checkoutQtyLine = document.getElementById('checkoutQtyLine');
+const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+const checkoutDelivery = document.getElementById('checkoutDelivery');
+const checkoutGrandTotal = document.getElementById('checkoutGrandTotal');
+const checkoutEstimate = document.getElementById('checkoutEstimate');
 const quantity = document.getElementById('quantity');
 const toast = document.getElementById('toast');
 
@@ -607,7 +614,17 @@ document.querySelectorAll('[data-close-checkout]').forEach(el=>el.addEventListen
 
 function updateTotal(){
   const q=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));
-  checkoutTotal.textContent=activePack.price==null?'':money(activePack.price*q);
+  const subtotal=activePack.price*q;
+  checkoutProductLine.textContent=activeProduct.name;
+  checkoutPackLine.textContent=activePack.label+' × '+money(activePack.price);
+  checkoutQtyLine.textContent=String(q);
+  checkoutSubtotal.textContent=money(subtotal);
+  checkoutDelivery.textContent='Confirmed after address';
+  checkoutGrandTotal.textContent=money(subtotal)+' + delivery';
+  checkoutTotal.textContent=money(subtotal);
+  checkoutEstimate.textContent=activeProduct.id==='jalebi-with-rabdi'
+    ? 'Ahmedabad + nearby delivery only. Preferred date is subject to route confirmation.'
+    : 'India-wide delivery available. Preferred date is subject to dispatch and route confirmation.';
 }
 quantity.addEventListener('input',updateTotal);
 quantity.addEventListener('change',()=>{quantity.value=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));updateTotal();});
@@ -620,7 +637,14 @@ document.querySelectorAll('[data-close-payment]').forEach(el=>el.addEventListene
 document.getElementById('checkoutForm').addEventListener('submit',e=>{
   e.preventDefault();
   if(!e.currentTarget.reportValidity()) return;
-  document.getElementById('paymentSummary').innerHTML=`<strong>${activeProduct.name} — ${activePack.label}</strong><span>${quantity.value} box(es) • ${checkoutTotal.textContent}${activePack.preview?' • preview price':''}</span>`;
+  const q=Math.max(1,Math.min(20,Math.trunc(Number(quantity.value)||1)));
+  const subtotal=activePack.price*q;
+  const pin=document.getElementById('customerPin').value.trim();
+  document.getElementById('paymentSummary').innerHTML=`
+    <strong>${activeProduct.name} — ${activePack.label}</strong>
+    <span>${q} box(es) • Subtotal ${money(subtotal)}</span>
+    <span>Delivery charge: to be confirmed for PIN ${pin}</span>
+    <span>Final payable = subtotal + delivery charge</span>`;
   setLayer(paymentLayer,true);
 });
 
