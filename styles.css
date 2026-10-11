@@ -1142,3 +1142,90 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
 @media(max-width:640px){
   .product-card{contain-intrinsic-size:500px}
 }
+
+
+/* Point 28: genuine, verified customer reviews */
+.reviews-section{
+  padding:82px 0 96px;
+  background:#f8efe4;
+}
+.reviews-inner{
+  width:min(1180px,calc(100% - 40px));
+  margin:auto;
+}
+.reviews-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin:0 0 28px;
+}
+.review-card{
+  padding:22px;
+  border:1px solid rgba(67,17,23,.10);
+  border-radius:22px;
+  background:#fffaf3;
+  box-shadow:0 10px 26px rgba(67,17,23,.05);
+}
+.review-stars{
+  color:#a86e2c;
+  letter-spacing:.08em;
+  font-size:15px;
+}
+.review-card blockquote{
+  margin:14px 0 18px;
+  color:#3a2523;
+  line-height:1.65;
+  font-size:14px;
+}
+.review-card p{margin:0;color:#6e5752;font-size:12px}
+.review-card p span{display:block;margin-top:4px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#9b766c}
+.review-capture{
+  display:grid;
+  grid-template-columns:.8fr 1.2fr;
+  gap:28px;
+  padding:30px;
+  border:1px solid rgba(67,17,23,.10);
+  border-radius:28px;
+  background:#fffaf3;
+}
+.review-capture-copy h3{
+  margin:12px 0;
+  font-family:"Playfair Display",serif;
+  font-size:36px;
+  line-height:1.05;
+  color:#431117;
+}
+.review-capture-copy p{color:#725b56;line-height:1.65;font-size:13px}
+.review-badge{
+  display:inline-flex;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#f1e4c9;
+  color:#5a1820;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.review-form{display:grid;gap:12px}
+.review-form textarea{resize:vertical}
+.review-consent{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:flex-start;
+  gap:9px;
+  font-size:11px!important;
+  line-height:1.5;
+}
+.review-consent input{margin-top:2px;width:auto}
+#reviewStatus{color:#7b615d;line-height:1.5}
+@media(max-width:800px){
+  .reviews-grid{grid-template-columns:1fr}
+  .review-capture{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .reviews-section{padding:64px 0 78px}
+  .reviews-inner{width:calc(100% - 24px)}
+  .review-capture{padding:20px;border-radius:22px}
+  .review-capture-copy h3{font-size:31px}
+}
