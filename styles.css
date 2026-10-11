@@ -572,3 +572,59 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
 @media(prefers-reduced-motion:reduce){
   .hero-sweet-card{transition:none}
 }
+
+
+/* Point 4 refinement: swipe/scroll hero sweets on mobile */
+@media(max-width:640px){
+  .hero-three-products{
+    min-height:430px;
+    width:100%;
+    overflow:visible;
+  }
+  .hero-product-stack{
+    position:relative;
+    display:flex;
+    gap:14px;
+    width:100vw;
+    height:auto;
+    margin-left:calc(50% - 50vw);
+    padding:8px 18px 72px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    scroll-padding-inline:18px;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    perspective:none;
+  }
+  .hero-product-stack::-webkit-scrollbar{display:none}
+  .hero-sweet-card,
+  .hero-sweet-main,
+  .hero-sweet-left,
+  .hero-sweet-right{
+    position:relative;
+    inset:auto;
+    flex:0 0 78vw;
+    width:78vw;
+    height:390px;
+    transform:none;
+    scroll-snap-align:center;
+    z-index:auto;
+    border-radius:24px;
+  }
+  .hero-sweet-card:first-child{margin-left:0}
+  .hero-sweet-card:hover,
+  .hero-sweet-card:focus-visible{
+    transform:none;
+  }
+  .hero-three-caption{
+    position:absolute;
+    left:50%;
+    bottom:8px;
+    transform:translateX(-50%);
+    width:max-content;
+    max-width:88vw;
+    pointer-events:none;
+  }
+}
