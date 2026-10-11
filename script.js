@@ -487,6 +487,20 @@ function openSampleRequest(productId=activeProduct?.id){
   const product=PRODUCTS.find(p=>p.id===productId) || PRODUCTS[0];
   document.getElementById('sampleProduct').textContent=product.name;
   document.getElementById('sampleSweet').value=product.id;
+
+  const sampleDate=document.getElementById('sampleDate');
+  const today=new Date();
+  const minDate=new Date(today);
+  minDate.setDate(minDate.getDate()+1);
+  const maxDate=new Date(today);
+  maxDate.setDate(maxDate.getDate()+14);
+  const fmt=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  sampleDate.min=fmt(minDate);
+  sampleDate.max=fmt(maxDate);
+  if(!sampleDate.value || sampleDate.value<sampleDate.min || sampleDate.value>sampleDate.max){
+    sampleDate.value=sampleDate.min;
+  }
+
   setLayer(layer,true);
   layer.querySelector('.sample-sheet').scrollTop=0;
 }
@@ -503,7 +517,29 @@ document.querySelectorAll('[data-close-sample]').forEach(el=>el.addEventListener
 document.getElementById('sampleForm').addEventListener('submit',e=>{
   e.preventDefault();
   if(!e.currentTarget.reportValidity()) return;
-  showToast('Sample request captured in preview. Backend submission will be activated before marketing launch.');
+
+  const phone=document.getElementById('samplePhone').value.trim();
+  const address=document.getElementById('sampleAddress').value.trim().replace(/\s+/g,' ');
+  const area=document.getElementById('sampleArea').value.trim().replace(/\s+/g,' ');
+  const pin=document.getElementById('samplePin').value.trim();
+  const date=document.getElementById('sampleDate').value;
+
+  if(area.length<3){
+    document.getElementById('sampleArea').setCustomValidity('Please enter your Ahmedabad locality.');
+    document.getElementById('sampleArea').reportValidity();
+    document.getElementById('sampleArea').setCustomValidity('');
+    return;
+  }
+  if(address.length<8){
+    document.getElementById('sampleAddress').setCustomValidity('Please enter enough address detail for sample confirmation.');
+    document.getElementById('sampleAddress').reportValidity();
+    document.getElementById('sampleAddress').setCustomValidity('');
+    return;
+  }
+
+  const draft={phone,address,area,pin,date,sweet:document.getElementById('sampleSweet').value,createdAt:Date.now()};
+  sessionStorage.setItem('tkSampleDraft',JSON.stringify(draft));
+  showToast('Request details validated. CRM duplicate and daily-slot checks will run before confirmation.');
   setLayer(document.getElementById('sampleLayer'),false);
 });
 
