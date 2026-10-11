@@ -588,7 +588,15 @@ document.querySelector('.hero-order-link').addEventListener('click',e=>{
   e.preventDefault();openProduct(PRODUCTS[0].id,e.currentTarget);
 });
 
-renderCards();syncRoute();
+renderCards();
+
+document.querySelectorAll('[data-hero-product]').forEach(card=>{
+  card.addEventListener('click',()=>{
+    const id=card.dataset.heroProduct;
+    const productCard=document.querySelector('[data-product="'+id+'"]');
+    openProduct(id,productCard || null);
+  });
+});syncRoute();
 
 // One observer drives entry reveals and pauses ambient motion outside the viewport.
 const hero=document.querySelector('.hero');
