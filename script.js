@@ -766,7 +766,7 @@ document.querySelectorAll('[data-hero-product]').forEach(card=>{
 
 // One observer drives entry reveals and pauses ambient motion outside the viewport.
 const hero=document.querySelector('.hero');
-const revealTargets=document.querySelectorAll('.section-head,.product-card,.future-note');
+const revealTargets=document.querySelectorAll('.section-head,.product-card,.future-note,.trust-copy,.trust-card,.origin-card');
 if('IntersectionObserver' in window){
   const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
     if(entry.target===hero) hero.classList.toggle('motion-paused',!entry.isIntersecting || document.hidden);
