@@ -307,6 +307,7 @@ function openProduct(id, sourceCard, push=true){
     detailMedia.style.viewTransitionName=sourceMedia?'product-media':'';
   },()=>{ if(sourceMedia) sourceMedia.style.viewTransitionName=''; detailMedia.style.viewTransitionName=''; });
   if(push) history.pushState({product:id},'', '#product/'+id);
+  requestAnimationFrame(()=>watchPrimaryProductActions());
 }
 
 let galleryRequest = 0;
@@ -417,8 +418,48 @@ function pulse(el){
   el.animate([{transform:'scale(1)'},{transform:'scale(1.07)'},{transform:'scale(1)'}],{duration:320,easing:'cubic-bezier(.2,.8,.2,1)'});
 }
 
+const mobileActionBar=document.getElementById('mobileActionBar');
+const mobileOrderBtn=document.getElementById('mobileOrderBtn');
+const mobileSampleBtn=document.getElementById('mobileSampleBtn');
+const mobileMedia=window.matchMedia('(max-width:640px)');
+let mobileActionObserver=null;
+
+function setMobileActionBar(visible){
+  if(!mobileActionBar) return;
+  const shouldShow=Boolean(visible && mobileMedia.matches && productLayer.classList.contains('is-open'));
+  mobileActionBar.classList.toggle('show',shouldShow);
+  mobileActionBar.setAttribute('aria-hidden',String(!shouldShow));
+}
+
+function watchPrimaryProductActions(){
+  mobileActionObserver?.disconnect();
+  setMobileActionBar(false);
+  if(!mobileMedia.matches) return;
+  const mainActions=productLayer.querySelector('.detail-actions');
+  const scroller=productLayer.querySelector('.product-sheet');
+  if(!mainActions || !scroller) return;
+
+  mobileActionObserver=new IntersectionObserver(entries=>{
+    const entry=entries[0];
+    // Show only after the original CTA block has scrolled above the visible product sheet.
+    const scrollerTop=scroller.getBoundingClientRect().top;
+    const scrolledPast=!entry.isIntersecting && entry.boundingClientRect.bottom <= scrollerTop + 8;
+    setMobileActionBar(scrolledPast);
+  },{
+    root:scroller,
+    threshold:[0,0.01,0.5,1]
+  });
+  mobileActionObserver.observe(mainActions);
+}
+
+mobileOrderBtn?.addEventListener('click',()=>document.getElementById('openCheckout')?.click());
+mobileSampleBtn?.addEventListener('click',()=>document.getElementById('openSample')?.click());
+mobileMedia.addEventListener?.('change',()=>watchPrimaryProductActions());
+
 function closeProduct(push=true){
   if(!productLayer.classList.contains('is-open')) return;
+  mobileActionObserver?.disconnect();
+  setMobileActionBar(false);
   closePhotoLightbox(); closePayment(); closeCheckout(); const sample=document.getElementById('sampleLayer'); if(sample?.classList.contains('is-open')) setLayer(sample,false,false);
   const target=productTrigger?.querySelector('[data-card-media]');
   const visible=target && target.getBoundingClientRect().top<innerHeight && target.getBoundingClientRect().bottom>0;
