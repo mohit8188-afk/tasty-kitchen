@@ -220,7 +220,7 @@ function jalebiSvg(id=''){
 function artSvg(product, suffix='card'){
   if(product.media?.length){
     const src = suffix === 'detail' ? product.media[0] : product.media[0];
-    return `<img src="${src}" alt="${product.name}" loading="lazy" decoding="async">`;
+    return `<img src="${src}" alt="${product.name}" loading="lazy" decoding="async" fetchpriority="low" sizes="(max-width: 640px) 100vw, (max-width: 979px) 92vw, 33vw">`;
   }
   return product.art === 'ladoo' ? ladooSvg(product.id+'-'+suffix) : product.art === 'jalebi' ? jalebiSvg(product.id+'-'+suffix) : bitesSvg(product.id+'-'+suffix);
 }
@@ -367,14 +367,14 @@ function renderDetailGallery(index=0){
   detailMedia.innerHTML = `
     <div class="detail-gallery">
       <button class="detail-photo-button" type="button" aria-label="Open ${activeProduct.name} photo ${activeMediaIndex+1} full screen">
-        <img src="${src}" alt="${activeProduct.name} photo ${activeMediaIndex+1}" decoding="async">
+        <img src="${src}" alt="${activeProduct.name} photo ${activeMediaIndex+1}" loading="eager" decoding="async" fetchpriority="high" sizes="(max-width: 900px) 100vw, 52vw">
         <span class="zoom-hint">Tap to enlarge</span>
       </button>
       <p class="gallery-caption" aria-live="polite">${activeMediaIndex+1} / ${activeProduct.media.length} — ${photoLabel(activeMediaIndex)}</p>
       <div class="detail-thumb-strip" aria-label="${activeProduct.name} photo gallery">
         ${activeProduct.media.map((photo,i)=>`
           <button type="button" class="detail-thumb ${i===activeMediaIndex?'active':''}" data-index="${i}" aria-pressed="${i===activeMediaIndex}" aria-label="View photo ${i+1} of ${activeProduct.media.length}">
-            <img src="${photo}" alt="${activeProduct.name} thumbnail ${i+1}" loading="lazy" decoding="async">
+            <img src="${photo}" alt="${activeProduct.name} thumbnail ${i+1}" loading="lazy" decoding="async" fetchpriority="low" sizes="82px">
           </button>`).join('')}
       </div>
     </div>`;
@@ -568,7 +568,7 @@ async function showLightboxPhoto(index){
     box.dataset.product=activeProduct.id;
     box.querySelector('.lightbox-thumbs').innerHTML=media.map((src,i)=>`
       <button type="button" class="lightbox-thumb" data-index="${i}" aria-label="Open photo ${i+1}">
-        <img src="${src}" alt="" loading="lazy" decoding="async">
+        <img src="${src}" alt="" loading="lazy" decoding="async" fetchpriority="low" sizes="100vw">
       </button>`).join('');
     box.querySelectorAll('.lightbox-thumb').forEach(btn=>btn.addEventListener('click',()=>showLightboxPhoto(Number(btn.dataset.index))));
   }
