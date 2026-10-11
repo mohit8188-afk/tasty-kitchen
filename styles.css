@@ -1068,3 +1068,53 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
     letter-spacing:.045em;
   }
 }
+
+
+/* Point 26: mobile sticky action bar after primary CTAs leave view */
+.mobile-action-bar{display:none}
+@media(max-width:640px){
+  .mobile-action-bar{
+    position:absolute;
+    z-index:20;
+    left:12px;
+    right:12px;
+    bottom:calc(10px + env(safe-area-inset-bottom));
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    padding:8px;
+    border:1px solid rgba(67,17,23,.10);
+    border-radius:18px;
+    background:rgba(255,248,239,.94);
+    box-shadow:0 16px 42px rgba(45,11,16,.18);
+    backdrop-filter:blur(14px);
+    transform:translateY(24px);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .22s ease,transform .22s ease;
+  }
+  .mobile-action-bar.show{
+    transform:translateY(0);
+    opacity:1;
+    pointer-events:auto;
+  }
+  .mobile-order-btn,
+  .mobile-sample-btn{
+    min-height:48px;
+    border-radius:13px;
+    font:inherit;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .mobile-order-btn{
+    border:1px solid #431117;
+    background:#431117;
+    color:#fff8ef;
+  }
+  .mobile-sample-btn{
+    border:1px solid #d4a15d;
+    background:#fff8ef;
+    color:#431117;
+  }
+}
