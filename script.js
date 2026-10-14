@@ -829,9 +829,146 @@ document.querySelectorAll('[data-close-checkout]').forEach(el=>el.addEventListen
 
 const date=new Date();date.setDate(date.getDate()+1);
 document.getElementById('deliveryDate').min=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const TK_PAYMENT_CREATE_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-payment-create';
+const TK_PAYMENT_VERIFY_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-payment-verify';
+let pendingCheckoutPayload=null;
+let razorpayScriptPromise=null;
+
+function loadRazorpayCheckout(){
+  if(window.Razorpay) return Promise.resolve();
+  if(razorpayScriptPromise) return razorpayScriptPromise;
+  razorpayScriptPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://checkout.razorpay.com/v1/checkout.js';
+    script.async=true;
+    script.onload=()=>window.Razorpay?resolve():reject(new Error('razorpay_unavailable'));
+    script.onerror=()=>reject(new Error('razorpay_load_failed'));
+    document.head.appendChild(script);
+  });
+  return razorpayScriptPromise;
+}
+
+function buildServerCart(){
+  return cart.map(item=>({
+    product_id:item.productId,
+    pack_grams:Number(String(item.pack).replace(/\D/g,'')),
+    quantity:Number(item.quantity)
+  }));
+}
+
+function checkoutAttribution(){
+  const qs=new URLSearchParams(location.search);
+  return {
+    utm_source:qs.get('utm_source'),
+    utm_medium:qs.get('utm_medium'),
+    utm_campaign:qs.get('utm_campaign'),
+    utm_content:qs.get('utm_content')
+  };
+}
+
+async function startRazorpayPayment(){
+  const btn=document.getElementById('payNowBtn');
+  const status=document.getElementById('paymentStatus');
+  if(!pendingCheckoutPayload || !cart.length){
+    status.textContent='Please review your cart again before payment.';
+    return;
+  }
+  btn.disabled=true;
+  const original=btn.textContent;
+  btn.textContent='Starting secure checkout…';
+  status.textContent='Creating your secure Razorpay order…';
+
+  const clientCheckoutId=(crypto?.randomUUID?.() || ('tk-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+  const payload={
+    ...pendingCheckoutPayload,
+    client_checkout_id:clientCheckoutId,
+    items:buildServerCart(),
+    attribution:checkoutAttribution()
+  };
+
+  try{
+    const createRes=await fetch(TK_PAYMENT_CREATE_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const created=await createRes.json().catch(()=>({}));
+    if(!createRes.ok){
+      status.textContent=created.message || (created.error==='payment_configuration_pending'
+        ? 'Razorpay activation is still being connected. No payment has been collected.'
+        : 'We could not start payment. Please try again.');
+      return;
+    }
+
+    const serverTotal=Number(created.amount_paise)/100;
+    if(serverTotal!==cartSubtotal()){
+      status.textContent='The server price has changed. Please close checkout and refresh before paying.';
+      return;
+    }
+
+    await loadRazorpayCheckout();
+    status.textContent='Secure Razorpay checkout opened. Complete payment to confirm your order.';
+
+    const options={
+      key:created.key_id,
+      amount:created.amount_paise,
+      currency:created.currency || 'INR',
+      name:'Tasty Kitchen',
+      description:'Fresh festive sweets',
+      order_id:created.razorpay_order_id,
+      prefill:{
+        name:payload.name,
+        contact:payload.mobile
+      },
+      notes:{
+        order_ref:created.order_ref
+      },
+      theme:{color:'#431117'},
+      modal:{
+        ondismiss:()=>{status.textContent='Payment was not completed. Your cart is still saved.';}
+      },
+      handler:async response=>{
+        status.textContent='Payment received. Verifying securely…';
+        const verifyRes=await fetch(TK_PAYMENT_VERIFY_URL,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(response)
+        });
+        const verified=await verifyRes.json().catch(()=>({}));
+        if(!verifyRes.ok || !verified.ok){
+          status.textContent=verified.message || 'Payment verification is pending. Please do not pay again. Contact Tasty Kitchen with your payment details.';
+          return;
+        }
+
+        window.tkTrackPaymentComplete?.(verified.order_ref,serverTotal);
+        cart=[];
+        saveCart();
+        renderCart();
+        pendingCheckoutPayload=null;
+        closePayment();
+        closeCheckout();
+        showToast('Payment confirmed. Order '+verified.order_ref+' is confirmed.');
+      }
+    };
+
+    const rz=new Razorpay(options);
+    rz.on('payment.failed',response=>{
+      const reason=response?.error?.description || 'Payment failed. No confirmed order was created.';
+      status.textContent=reason;
+    });
+    rz.open();
+  }catch{
+    status.textContent='Payment service could not be loaded. Please try again.';
+  }finally{
+    btn.disabled=false;
+    btn.textContent=original;
+  }
+}
+
 const paymentLayer=document.getElementById('paymentLayer');
 function closePayment(){if(paymentLayer.classList.contains('is-open')) setLayer(paymentLayer,false);}
 document.querySelectorAll('[data-close-payment]').forEach(el=>el.addEventListener('click',closePayment));
+document.getElementById('payNowBtn')?.addEventListener('click',startRazorpayPayment);
 
 document.getElementById('checkoutForm').addEventListener('submit',e=>{
   e.preventDefault();
@@ -843,12 +980,20 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
     const product=PRODUCTS.find(p=>p.id===item.productId);
     return `<span>${product?.name || item.productId} • ${item.pack} × ${item.quantity} = ${money(item.unitPrice*item.quantity)}</span>`;
   }).join('');
+  pendingCheckoutPayload={
+    name:document.getElementById('customerName').value.trim(),
+    mobile:document.getElementById('customerPhone').value.trim(),
+    address:document.getElementById('customerAddress').value.trim().replace(/\s+/g,' '),
+    pincode:pin,
+    delivery_date:document.getElementById('deliveryDate').value
+  };
   document.getElementById('paymentSummary').innerHTML=`
     <strong>${cart.length} product type${cart.length===1?'':'s'} in your order</strong>
     ${lines}
     <span>Delivery: FREE</span>
     <span><b>Total payable: ${money(subtotal)}</b></span>
     <span>Delivery PIN: ${pin}</span>`;
+  document.getElementById('paymentStatus').textContent='Payment will open securely through Razorpay. Server pricing is rechecked before payment.';
   setLayer(paymentLayer,true);
 });
 
