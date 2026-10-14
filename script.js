@@ -7,8 +7,8 @@ const PRODUCTS = [
     description: 'Our signature sweet: soft, nutty and gift-ready, prepared fresh in small batches.',
     basePack: '250g festive box',
     packs: [
-      {label:'250g', price:385, preview:false},
-      {label:'500g', price:770, preview:false}
+      {label:'250g', price:400, preview:false},
+      {label:'500g', price:800, preview:false}
     ],
     ingredients: ['Makhana','Dates','Cashew','Almond','Raisins','Desiccated coconut','Ghee','Limited added sugar'],
     delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. Free sample requests are limited to the Ahmedabad + nearby sample route.',
@@ -34,8 +34,8 @@ const PRODUCTS = [
     description: 'A coconut-forward festive ladoo made for gifting and sharing, presented with a premium homemade finish.',
     basePack: '250g festive box',
     packs: [
-      {label:'250g', price:190, preview:false},
-      {label:'500g', price:380, preview:false}
+      {label:'250g', price:175, preview:false},
+      {label:'500g', price:350, preview:false}
     ],
     ingredients: ['Coconut','Cashew','Almond','Raisins','Ghee','Final recipe to be confirmed'],
     delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. Free sample requests are limited to the Ahmedabad + nearby sample route.',
@@ -54,16 +54,16 @@ const PRODUCTS = [
   {
     id: 'jalebi-with-rabdi',
     kicker: 'Fresh festive indulgence',
-    name: 'Desi Ghee Jalebi with Rabdi',
-    tagline: 'Crisp desi ghee jalebi paired with rich, creamy rabdi.',
-    description: 'Our third festive sweet brings a classic pairing of crisp desi ghee jalebi with rich, creamy rabdi to the collection.',
+    name: 'Jalebi with Rabdi',
+    tagline: 'Crisp jalebi paired with rich, creamy rabdi.',
+    description: 'Our third festive sweet brings a classic pairing of crisp jalebi with rich, creamy rabdi to the collection.',
     basePack: '250g pack',
     packs: [
-      {label:'250g', price:470, preview:false},
-      {label:'500g', price:940, preview:false}
+      {label:'250g', price:200, preview:false},
+      {label:'500g', price:400, preview:false}
     ],
-    ingredients: ['Desi ghee jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
-    delivery: 'Free delivery for Desi Ghee Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Prepared fresh for a confirmed local delivery slot; route timing is shared with the order. Free sample requests use the same Ahmedabad + nearby sample route.',
+    ingredients: ['Jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
+    delivery: 'Free delivery for Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Prepared fresh for a confirmed local delivery slot; route timing is shared with the order. Free sample requests use the same Ahmedabad + nearby sample route.',
     care: 'Keep the rabdi refrigerated on receipt. For the best experience, enjoy the jalebi and rabdi as fresh as possible and follow the use-by guidance supplied with the pack. Do not leave the rabdi unrefrigerated for extended periods.',
     allergens: 'Contains milk/dairy (rabdi and desi ghee). The final jalebi ingredient declaration will be printed on the pack; if you have a cereal/gluten allergy or another severe food allergy, please confirm with Tasty Kitchen before ordering.',
     gifting: 'Available in 250g and 500g packs for Ahmedabad + nearby serviceable areas.',
@@ -73,7 +73,7 @@ const PRODUCTS = [
       'assets/jalebi-2.webp',
       'assets/jalebi-3.webp'
     ],
-    photoLabels: ['Desi Ghee Jalebi with Rabdi platter','Festive close-up','Premium festive thali'],
+    photoLabels: ['Jalebi with Rabdi platter','Festive close-up','Premium festive thali'],
     art: 'jalebi'
   }
 ];
@@ -804,7 +804,7 @@ function renderCart(){
   checkoutGrandTotal.textContent=money(subtotal);
   checkoutTotal.textContent=money(subtotal);
   checkoutEstimate.textContent=cartHasJalebi()
-    ? 'Free delivery. Because your cart includes Desi Ghee Jalebi with Rabdi, the full order must be deliverable within Ahmedabad + nearby serviceable area.'
+    ? 'Free delivery. Because your cart includes Jalebi with Rabdi, the full order must be deliverable within Ahmedabad + nearby serviceable area.'
     : 'Free delivery. Makhana Mewa Bites and Coconut Mewa Ladoo are available for India-wide delivery.';
 }
 function openCart(){
