@@ -462,9 +462,10 @@
       <h3 id="paymentTitle">Review your order<br>before payment.</h3>
       <div id="paymentSummary" class="checkout-summary"></div>
       <div class="payment-methods"><span>UPI</span><span>Debit / credit card</span></div>
-      <p>100% advance payment by UPI or card. Online payment is currently unavailable.</p>
-      <p class="preview-warning">No payment is collected and no paid order is created until online payment is enabled.</p>
-      <button class="primary-btn" type="button" data-close-payment>Back to checkout</button>
+      <p>100% advance payment through Razorpay. Your order is confirmed only after the payment is securely verified.</p>
+      <p class="preview-warning" id="paymentStatus">Razorpay checkout is being connected. If payment setup is not active yet, no money will be collected.</p>
+      <button class="primary-btn" id="payNowBtn" type="button">Pay securely with Razorpay</button>
+      <button class="secondary-btn" type="button" data-close-payment>Back to checkout</button>
     </div>
   </section>
 
