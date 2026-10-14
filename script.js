@@ -65,7 +65,7 @@ const PRODUCTS = [
     ingredients: ['Jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
     delivery: 'Free delivery for Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Prepared fresh for a confirmed local delivery slot; route timing is shared with the order. Free sample requests use the same Ahmedabad + nearby sample route.',
     care: 'Keep the rabdi refrigerated on receipt. For the best experience, enjoy the jalebi and rabdi as fresh as possible and follow the use-by guidance supplied with the pack. Do not leave the rabdi unrefrigerated for extended periods.',
-    allergens: 'Contains milk/dairy (rabdi and desi ghee). The final jalebi ingredient declaration will be printed on the pack; if you have a cereal/gluten allergy or another severe food allergy, please confirm with Tasty Kitchen before ordering.',
+    allergens: 'Contains milk/dairy (rabdi). The final jalebi ingredient declaration will be printed on the pack; if you have a cereal/gluten allergy or another severe food allergy, please confirm with Tasty Kitchen before ordering.',
     gifting: 'Available in 250g and 500g packs for Ahmedabad + nearby serviceable areas.',
     colors: ['#5a210d','#c76a13','#f4c56a'],
     media: [
