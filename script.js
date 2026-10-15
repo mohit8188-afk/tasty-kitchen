@@ -832,6 +832,8 @@ document.getElementById('deliveryDate').min=`${date.getFullYear()}-${String(date
 const TK_PAYMENT_CREATE_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-payment-create';
 const TK_PAYMENT_VERIFY_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-payment-verify';
 let pendingCheckoutPayload=null;
+let preparedPayment=null;
+let preparePaymentPromise=null;
 let razorpayScriptPromise=null;
 
 function loadRazorpayCheckout(){
@@ -866,17 +868,17 @@ function checkoutAttribution(){
   };
 }
 
-async function startRazorpayPayment(){
+async function prepareRazorpayPayment(){
   const btn=document.getElementById('payNowBtn');
   const status=document.getElementById('paymentStatus');
-  if(!pendingCheckoutPayload || !cart.length){
-    status.textContent='Please review your cart again before payment.';
-    return;
-  }
+  if(!pendingCheckoutPayload || !cart.length) throw new Error('checkout_not_ready');
+  if(preparedPayment) return preparedPayment;
+  if(preparePaymentPromise) return preparePaymentPromise;
+
   btn.disabled=true;
-  const original=btn.textContent;
-  btn.textContent='Starting secure checkout…';
-  status.textContent='Creating your secure Razorpay order…';
+  btn.textContent='Preparing secure payment…';
+  status.dataset.state='loading';
+  status.textContent='Checking your order and connecting securely to Razorpay…';
 
   const clientCheckoutId=(crypto?.randomUUID?.() || ('tk-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
   const payload={
@@ -886,7 +888,7 @@ async function startRazorpayPayment(){
     attribution:checkoutAttribution()
   };
 
-  try{
+  preparePaymentPromise=(async()=>{
     const createRes=await fetch(TK_PAYMENT_CREATE_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -894,20 +896,49 @@ async function startRazorpayPayment(){
     });
     const created=await createRes.json().catch(()=>({}));
     if(!createRes.ok){
-      status.textContent=created.message || (created.error==='payment_configuration_pending'
-        ? 'Razorpay activation is still being connected. No payment has been collected.'
-        : 'We could not start payment. Please try again.');
-      return;
+      const err=new Error(created.message || 'We could not prepare secure payment.');
+      err.code=created.error || 'payment_prepare_failed';
+      throw err;
     }
 
     const serverTotal=Number(created.amount_paise)/100;
     if(serverTotal!==cartSubtotal()){
-      status.textContent='The server price has changed. Please close checkout and refresh before paying.';
-      return;
+      const err=new Error('The server price changed. Please reopen your cart before paying.');
+      err.code='price_mismatch';
+      throw err;
     }
 
     await loadRazorpayCheckout();
-    status.textContent='Secure Razorpay checkout opened. Complete payment to confirm your order.';
+    preparedPayment={created,payload,serverTotal};
+    status.dataset.state='ready';
+    status.innerHTML='<strong>Ready for secure payment</strong><span>Your total was rechecked on our server. Click below to open Razorpay.</span>';
+    btn.disabled=false;
+    btn.textContent='Pay '+money(serverTotal)+' securely';
+    return preparedPayment;
+  })().catch(err=>{
+    preparedPayment=null;
+    status.dataset.state='error';
+    status.innerHTML='<strong>We need one quick correction</strong><span>'+escapeHtml(err.message || 'Please review your checkout details and try again.')+'</span>';
+    btn.disabled=false;
+    btn.textContent='Try secure payment again';
+    throw err;
+  }).finally(()=>{preparePaymentPromise=null;});
+
+  return preparePaymentPromise;
+}
+
+async function startRazorpayPayment(){
+  const btn=document.getElementById('payNowBtn');
+  const status=document.getElementById('paymentStatus');
+
+  try{
+    const ready=preparedPayment || await prepareRazorpayPayment();
+    const {created,payload,serverTotal}=ready;
+
+    btn.disabled=true;
+    btn.textContent='Opening Razorpay…';
+    status.dataset.state='loading';
+    status.textContent='Opening Razorpay secure checkout…';
 
     const options={
       key:created.key_id,
@@ -916,18 +947,19 @@ async function startRazorpayPayment(){
       name:'Tasty Kitchen',
       description:'Fresh festive sweets',
       order_id:created.razorpay_order_id,
-      prefill:{
-        name:payload.name,
-        contact:payload.mobile
-      },
-      notes:{
-        order_ref:created.order_ref
-      },
+      prefill:{name:payload.name,contact:payload.mobile},
+      notes:{order_ref:created.order_ref},
       theme:{color:'#431117'},
       modal:{
-        ondismiss:()=>{status.textContent='Payment was not completed. Your cart is still saved.';}
+        ondismiss:()=>{
+          status.dataset.state='ready';
+          status.innerHTML='<strong>Payment not completed</strong><span>Your order is still ready. You can reopen Razorpay without rebuilding the cart.</span>';
+          btn.disabled=false;
+          btn.textContent='Pay '+money(serverTotal)+' securely';
+        }
       },
       handler:async response=>{
+        status.dataset.state='loading';
         status.textContent='Payment received. Verifying securely…';
         const verifyRes=await fetch(TK_PAYMENT_VERIFY_URL,{
           method:'POST',
@@ -936,7 +968,10 @@ async function startRazorpayPayment(){
         });
         const verified=await verifyRes.json().catch(()=>({}));
         if(!verifyRes.ok || !verified.ok){
-          status.textContent=verified.message || 'Payment verification is pending. Please do not pay again. Contact Tasty Kitchen with your payment details.';
+          status.dataset.state='error';
+          status.innerHTML='<strong>Verification pending</strong><span>'+escapeHtml(verified.message || 'Please do not pay again. Contact Tasty Kitchen with your payment details.')+'</span>';
+          btn.disabled=false;
+          btn.textContent='Check payment again';
           return;
         }
 
@@ -945,6 +980,7 @@ async function startRazorpayPayment(){
         saveCart();
         renderCart();
         pendingCheckoutPayload=null;
+        preparedPayment=null;
         closePayment();
         closeCheckout();
         showToast('Payment confirmed. Order '+verified.order_ref+' is confirmed.');
@@ -954,17 +990,16 @@ async function startRazorpayPayment(){
     const rz=new Razorpay(options);
     rz.on('payment.failed',response=>{
       const reason=response?.error?.description || 'Payment failed. No confirmed order was created.';
-      status.textContent=reason;
+      status.dataset.state='error';
+      status.innerHTML='<strong>Payment was not completed</strong><span>'+escapeHtml(reason)+'</span>';
+      btn.disabled=false;
+      btn.textContent='Try payment again';
     });
     rz.open();
   }catch{
-    status.textContent='Payment service could not be loaded. Please try again.';
-  }finally{
-    btn.disabled=false;
-    btn.textContent=original;
+    // prepareRazorpayPayment already renders the actionable error.
   }
 }
-
 const paymentLayer=document.getElementById('paymentLayer');
 function closePayment(){if(paymentLayer.classList.contains('is-open')) setLayer(paymentLayer,false);}
 document.querySelectorAll('[data-close-payment]').forEach(el=>el.addEventListener('click',closePayment));
@@ -988,13 +1023,19 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
     delivery_date:document.getElementById('deliveryDate').value
   };
   document.getElementById('paymentSummary').innerHTML=`
-    <strong>${cart.length} product type${cart.length===1?'':'s'} in your order</strong>
-    ${lines}
-    <span>Delivery: FREE</span>
-    <span><b>Total payable: ${money(subtotal)}</b></span>
-    <span>Delivery PIN: ${pin}</span>`;
-  document.getElementById('paymentStatus').textContent='Payment will open securely through Razorpay. Server pricing is rechecked before payment.';
+    <div class="payment-summary-top"><span>Order summary</span><strong>${money(subtotal)}</strong></div>
+    <div class="payment-lines">${lines}</div>
+    <div class="payment-meta"><span>Delivery <b>FREE</b></span><span>PIN <b>${pin}</b></span></div>`;
+  preparedPayment=null;
+  preparePaymentPromise=null;
+  const status=document.getElementById('paymentStatus');
+  const payBtn=document.getElementById('payNowBtn');
+  status.dataset.state='loading';
+  status.textContent='Checking your order and connecting securely to Razorpay…';
+  payBtn.disabled=true;
+  payBtn.textContent='Preparing secure payment…';
   setLayer(paymentLayer,true);
+  prepareRazorpayPayment().catch(()=>{});
 });
 
 
