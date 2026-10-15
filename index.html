@@ -448,8 +448,8 @@
           <span class="secure-mark" aria-hidden="true">◇</span>
         </div>
 
-        <button class="primary-btn checkout-pay" type="submit">Review order • <span id="checkoutTotal"></span></button>
-        <small class="preview-warning">Online payment is not yet enabled. No payment is collected from this page.</small>
+        <button class="primary-btn checkout-pay" type="submit">Continue to secure payment • <span id="checkoutTotal"></span></button>
+        <small class="checkout-secure-note">Secure Razorpay checkout • UPI & cards • payment verified before order confirmation</small>
       </form>
     </div>
   </section>
@@ -458,14 +458,25 @@
     <div class="checkout-backdrop" data-close-payment></div>
     <div class="payment-sheet" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
       <button class="sheet-close" type="button" data-close-payment aria-label="Back to checkout">×</button>
-      <p class="kicker">Order review</p>
-      <h3 id="paymentTitle">Review your order<br>before payment.</h3>
-      <div id="paymentSummary" class="checkout-summary"></div>
-      <div class="payment-methods"><span>UPI</span><span>Debit / credit card</span></div>
-      <p>100% advance payment through Razorpay. Your order is confirmed only after the payment is securely verified.</p>
-      <p class="preview-warning" id="paymentStatus">Razorpay checkout is being connected. If payment setup is not active yet, no money will be collected.</p>
-      <button class="primary-btn" id="payNowBtn" type="button">Pay securely with Razorpay</button>
-      <button class="secondary-btn" type="button" data-close-payment>Back to checkout</button>
+      <div class="payment-head">
+        <div>
+          <p class="kicker">Secure checkout</p>
+          <h3 id="paymentTitle">One last review.<br>Then pay securely.</h3>
+        </div>
+        <span class="razorpay-badge">Razorpay</span>
+      </div>
+      <div id="paymentSummary" class="payment-order-card"></div>
+      <div class="payment-trust-row" aria-label="Payment options and security">
+        <span>UPI</span><span>Cards</span><span>Secure verification</span>
+      </div>
+      <div class="payment-status-card" id="paymentStatus" role="status" aria-live="polite">
+        Preparing secure payment…
+      </div>
+      <button class="primary-btn payment-pay-btn" id="payNowBtn" type="button" disabled>
+        Preparing secure payment…
+      </button>
+      <button class="payment-back-btn" type="button" data-close-payment>← Back to checkout</button>
+      <p class="payment-fineprint">100% advance payment. Your order is confirmed only after Razorpay payment is securely verified.</p>
     </div>
   </section>
 
