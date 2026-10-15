@@ -13,8 +13,8 @@ Deno.serve(async(req:Request)=>{
  if(!url||!serviceKey)return respond({error:"server_not_configured"},503);
  const db=createClient(url,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}});
  const {data:{user},error:authError}=await db.auth.getUser(token);
- const ids=(Deno.env.get("TK_CRM_ADMIN_USER_IDS")||"").split(",").map(x=>x.trim()).filter(Boolean);
- if(authError||!user||!ids.includes(user.id))return respond({error:"forbidden"},403);
+ const designatedAdminId="ac7772dd-2607-4bd3-985d-9668b668bce3";
+ if(authError||!user||user.id!==designatedAdminId||user.email?.toLowerCase()!=="mohit8188@gmail.com"||!user.email_confirmed_at)return respond({error:"forbidden"},403);
  const u=new URL(req.url),action=u.searchParams.get("action")||"dashboard";
  const contactId=u.searchParams.get("contact_id");
  if(req.method==="GET"){
