@@ -33,7 +33,7 @@ Deno.serve(async(req:Request)=>{
    const pendingDelivery=paid.filter(x=>!["delivered","cancelled"].includes(x.order_status));
    const revenue=paid.filter(x=>x.order_status!=="cancelled").reduce((s,x)=>s+Number(x.total_amount||0),0);
    const overdue=(tasks.data||[]).filter(x=>x.due_at&&new Date(x.due_at)<new Date()).length;
-   return respond({counts:{contacts:contacts.count||0,live_orders:real.length,live_paid_orders:paid.length,live_pending_delivery:pendingDelivery.length,live_paid_revenue_inr:revenue,tasting_requests:(samples.data||[]).length,live_paid_tastings:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid").length,gifting_inquiries:gifting.count||0,open_tasks:(tasks.data||[]).length,overdue_tasks:overdue,test_orders:test.length},notice:"All financial figures are filtered to live payment environment; refunds and other adjustments require reconciliation."});
+   return respond({counts:{contacts:contacts.count||0,live_orders:real.length,live_paid_orders:pendingDelivery.length,live_pending_delivery:pendingDelivery.length,live_paid_revenue_inr:revenue,tasting_requests:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid"&&!["delivered","converted","lost","cancelled","rejected"].includes(x.status)).length,live_paid_tastings:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid").length,gifting_inquiries:gifting.count||0,open_tasks:(tasks.data||[]).length,overdue_tasks:overdue,test_orders:test.length},notice:"All financial figures are filtered to live payment environment; refunds and other adjustments require reconciliation."});
   }
   if(action==="contacts"){
    const search=(u.searchParams.get("q")||"").trim().slice(0,80).replace(/[%_,()]/g,"");
@@ -60,9 +60,10 @@ Deno.serve(async(req:Request)=>{
   if(["tasting","orders","gifting","tasks"].includes(action)){
    const map:{[key:string]:[string,string]}={tasting:["tk_sample_requests","created_at"],orders:["tk_orders","created_at"],gifting:["tk_gifting_inquiries","created_at"],tasks:["tk_crm_tasks","created_at"]};
    const [table,order]=map[action];let query=db.from(table).select("*").order(order,{ascending:false}).limit(100);
-   if(action==="orders"&&u.searchParams.get("mode")!=="test")query=query.eq("payment_environment","live");
+   if(action==="orders")query=query.eq("payment_environment","live");
+   if(action==="tasting")query=query.eq("payment_environment","live");
    const {data,error}=await query;
-   return error?respond({error:"query_failed"},500):respond({rows:data,mode:action==="orders"?(u.searchParams.get("mode")==="test"?"including_test":"live_only"):null});
+   return error?respond({error:"query_failed"},500):respond({rows:data,mode:["orders","tasting"].includes(action)?"live_only":null});
   }
  }
  if(req.method==="POST"&&action==="order_transition"){
