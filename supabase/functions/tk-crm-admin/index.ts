@@ -65,6 +65,18 @@ Deno.serve(async(req:Request)=>{
    return error?respond({error:"query_failed"},500):respond({rows:data,mode:action==="orders"?(u.searchParams.get("mode")==="test"?"including_test":"live_only"):null});
   }
  }
+ if(req.method==="POST"&&action==="order_transition"){
+  let body:any;try{body=await req.json()}catch{return respond({error:"invalid_json"},400)}
+  if(typeof body.order_id!=="string"||!/^[0-9a-f-]{36}$/i.test(body.order_id)||
+     !["preparing","packed","out_for_delivery","delivered","cancelled"].includes(body.to_status))
+     return respond({error:"invalid_transition_request"},400);
+  const {data,error}=await db.rpc("tk_crm_transition_order",{
+   p_order_id:body.order_id,p_actor_uid:user.id,p_to_status:body.to_status,
+   p_reason:typeof body.reason==="string"?body.reason.slice(0,500):null
+  });
+  if(error)return respond({error:"transition_rejected"},409);
+  return respond({transition:data});
+ }
  if(req.method==="POST"&&["note","task"].includes(action)){
   let b:any;try{b=await req.json()}catch{return respond({error:"invalid_json"},400)}
   if(typeof b.contact_id!=="string"||! /^[0-9a-f-]{36}$/i.test(b.contact_id))return respond({error:"invalid_contact"},400);
