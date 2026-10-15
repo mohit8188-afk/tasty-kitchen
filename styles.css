@@ -1544,3 +1544,20 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
 @media(prefers-reduced-motion:reduce){
   .payment-status-card[data-state="loading"]::before{animation:none}
 }
+
+
+/* Product detail conversion hierarchy — order immediately after pack selection */
+.detail-actions{
+  margin:18px 0 10px;
+}
+.detail-info-grid{
+  margin-top:20px;
+}
+@media(max-width:640px){
+  .detail-actions{
+    margin-top:14px;
+  }
+  .detail-info-grid{
+    margin-top:14px;
+  }
+}
