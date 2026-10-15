@@ -11,7 +11,7 @@ const PRODUCTS = [
       {label:'500g', price:800, preview:false}
     ],
     ingredients: ['Makhana','Dates','Cashew','Almond','Raisins','Desiccated coconut','Ghee','Limited added sugar'],
-    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. Free sample requests are limited to the Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. ₹20 tasting trial requests are limited to the Ahmedabad + nearby sample route.',
     care: 'Keep the box sealed in a cool, dry place away from direct heat and moisture. For best texture and flavour, enjoy fresh and follow the best-before / use-by guidance printed on the pack.',
     allergens: 'Contains tree nuts (cashew and almond) and milk-derived ghee. Contains coconut. Prepared in a home kitchen where other food allergens may also be handled.',
     gifting: 'Available in 250g and 500g festive boxes. For larger gifting quantities, contact Tasty Kitchen for availability.',
@@ -38,7 +38,7 @@ const PRODUCTS = [
       {label:'500g', price:350, preview:false}
     ],
     ingredients: ['Coconut','Cashew','Almond','Raisins','Ghee','Final recipe to be confirmed'],
-    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. Free sample requests are limited to the Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. ₹20 tasting trial requests are limited to the Ahmedabad + nearby sample route.',
     care: 'Keep sealed in a cool, dry place away from direct heat and moisture. For best taste and texture, enjoy fresh and follow the best-before / use-by guidance printed on the pack.',
     allergens: 'Contains tree nuts (cashew and almond) and milk-derived ghee. Contains coconut. Prepared in a home kitchen where other food allergens may also be handled.',
     gifting: 'Available in 250g and 500g festive boxes. Larger gifting quantities are subject to availability.',
@@ -63,7 +63,7 @@ const PRODUCTS = [
       {label:'500g', price:400, preview:false}
     ],
     ingredients: ['Jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
-    delivery: 'Free delivery for Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Prepared fresh for a confirmed local delivery slot; route timing is shared with the order. Free sample requests use the same Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery for Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Prepared fresh for a confirmed local delivery slot; route timing is shared with the order. ₹20 tasting trial requests use the same Ahmedabad + nearby sample route.',
     care: 'Keep the rabdi refrigerated on receipt. For the best experience, enjoy the jalebi and rabdi as fresh as possible and follow the use-by guidance supplied with the pack. Do not leave the rabdi unrefrigerated for extended periods.',
     allergens: 'Contains milk/dairy (rabdi). The final jalebi ingredient declaration will be printed on the pack; if you have a cereal/gluten allergy or another severe food allergy, please confirm with Tasty Kitchen before ordering.',
     gifting: 'Available in 250g and 500g packs for Ahmedabad + nearby serviceable areas.',
@@ -578,6 +578,8 @@ async function showLightboxPhoto(index){
   selectDetailPhoto(next);
 }
 
+const TK_SAMPLE_PAYMENT_VERIFY_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-sample-payment-verify';
+
 function openSampleRequest(productId=activeProduct?.id){
   const layer=document.getElementById('sampleLayer');
   const product=PRODUCTS.find(p=>p.id===productId) || PRODUCTS[0];
@@ -642,6 +644,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     locality:area,
     preferred_date:date,
     product_id:document.getElementById('sampleSweet').value,
+    client_checkout_id:(crypto?.randomUUID?.() || ('tks-'+Date.now()+'-'+Math.random().toString(36).slice(2))),
     source:'website',
     utm_source:qs.get('utm_source'),
     utm_medium:qs.get('utm_medium'),
@@ -651,7 +654,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
 
   submit.disabled=true;
   const original=submit.textContent;
-  submit.textContent='Checking availability…';
+  submit.textContent='Preparing ₹20 secure payment…';
 
   try{
     const res=await fetch('https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-sample-request',{
@@ -662,36 +665,81 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     const data=await res.json().catch(()=>({}));
     if(!res.ok){
       const messages={
-        active_sample_exists:data.sample_ref ? 'A sample request is already active. Reference: '+data.sample_ref : 'A sample request is already active for this mobile number.',
-        sample_cooldown:data.sample_ref ? 'A free sample was already used recently. Reference: '+data.sample_ref+'. Please try again after the '+(data.cooldown_days || 30)+'-day sample window.' : 'A free sample was already used recently for this mobile number.',
-        date_closed:'Sample requests are closed for this date.',
-        date_full:'Sample slots are full for this date. Please choose another date.',
-        date_outside_window:'Please choose a date within the available sample booking window.'
+        active_sample_exists:data.sample_ref ? 'A tasting request is already active. Reference: '+data.sample_ref : 'A tasting request is already active for this mobile number.',
+        sample_cooldown:data.sample_ref ? 'A ₹20 tasting trial was already used recently. Reference: '+data.sample_ref+'. Please try again after the '+(data.cooldown_days || 30)+'-day tasting window.' : 'A ₹20 tasting trial was already used recently for this mobile number.',
+        date_closed:'Tasting requests are closed for this date.',
+        date_full:'Tasting slots are full for this date. Please choose another date.',
+        date_outside_window:'Please choose a date within the available tasting booking window.'
       };
-      showToast(messages[data.error] || data.message || 'We could not submit the sample request. Please try again.');
+      showToast(messages[data.error] || data.message || 'We could not prepare the tasting request. Please try again.');
       return;
     }
 
-    sessionStorage.removeItem('tkSampleDraft');
-    trackEvent('sample_submit_success',{product_id:payload.product_id,metadata:{sample_ref:data.sample_ref || null}});
-    const success=document.getElementById('sampleSuccess');
-    const ref=data.sample_ref || data.request_id;
-    success.dataset.sampleRef=ref;
-    success.dataset.mobile=phone;
-    document.getElementById('sampleSuccessRef').textContent=ref;
-    document.getElementById('sampleSuccessMessage').textContent='We’ll confirm the route and sample slot before delivery. Add the delivery address now, or keep this Sample ID for later follow-up.';
-    form.hidden=true;
-    success.hidden=false;
-    success.scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
+    await loadRazorpayCheckout();
+    const product=PRODUCTS.find(p=>p.id===payload.product_id);
+    const options={
+      key:data.key_id,
+      amount:data.amount_paise,
+      currency:data.currency || 'INR',
+      name:'Tasty Kitchen',
+      description:'₹20 tasting trial • '+(product?.name || 'Festive sweet'),
+      order_id:data.razorpay_order_id,
+      prefill:{name:payload.name,contact:payload.mobile},
+      notes:{sample_ref:data.sample_ref},
+      theme:{color:'#431117'},
+      modal:{
+        ondismiss:()=>{
+          submit.disabled=false;
+          submit.textContent=original;
+          showToast('Payment not completed. No tasting slot was confirmed.');
+        }
+      },
+      handler:async response=>{
+        submit.textContent='Verifying payment…';
+        const verifyRes=await fetch(TK_SAMPLE_PAYMENT_VERIFY_URL,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(response)
+        });
+        const verified=await verifyRes.json().catch(()=>({}));
+        if(!verifyRes.ok || !verified.ok){
+          submit.disabled=false;
+          submit.textContent=original;
+          showToast(verified.message || 'Payment verification is pending. Please do not pay again. Contact Tasty Kitchen.');
+          return;
+        }
+
+        sessionStorage.removeItem('tkSampleDraft');
+        trackEvent('sample_submit_success',{product_id:payload.product_id,metadata:{sample_ref:verified.sample_ref || data.sample_ref,amount:20,payment:'razorpay'}});
+        const success=document.getElementById('sampleSuccess');
+        const ref=verified.sample_ref || data.sample_ref;
+        success.dataset.sampleRef=ref;
+        success.dataset.mobile=phone;
+        document.getElementById('sampleSuccessRef').textContent=ref;
+        document.getElementById('sampleSuccessMessage').textContent='₹20 payment confirmed. We’ll confirm the route and tasting slot before delivery. Add the delivery address now, or keep this Sample ID for later follow-up.';
+        form.hidden=true;
+        success.hidden=false;
+        success.scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
+        submit.disabled=false;
+        submit.textContent=original;
+      }
+    };
+
+    const rz=new Razorpay(options);
+    rz.on('payment.failed',response=>{
+      const reason=response?.error?.description || 'Payment failed. No tasting slot was confirmed.';
+      showToast(reason);
+      submit.disabled=false;
+      submit.textContent=original;
+    });
+    rz.open();
   }catch{
     sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
-    showToast('Network issue. Your details are kept on this device; please try again.');
-  }finally{
+    showToast('Payment service could not be opened. Your details are kept on this device; please try again.');
     submit.disabled=false;
     submit.textContent=original;
   }
 });
-
 document.getElementById('sampleAddressToggle').addEventListener('click',()=>{
   const form=document.getElementById('sampleAddressForm');
   form.hidden=!form.hidden;
@@ -732,7 +780,7 @@ document.getElementById('sampleAddressForm').addEventListener('submit',async e=>
     const data=await res.json().catch(()=>({}));
     if(!res.ok){
       const messages={
-        address_sample_exists:'A free sample was already requested recently for this address/locality. Please use the existing request or wait for the sample window to reopen.',
+        address_sample_exists:'A ₹20 tasting trial was already requested recently for this address/locality. Please use the existing request or wait for the tasting window to reopen.',
         invalid_city:'Please enter the delivery city.',
         sample_verification_failed:'We could not verify this Sample ID with the mobile number.'
       };
