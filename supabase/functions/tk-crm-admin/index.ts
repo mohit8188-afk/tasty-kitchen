@@ -70,6 +70,49 @@ Deno.serve(async(req:Request)=>{
    return error?respond({error:"query_failed"},500):respond({rows:data,mode:["orders","tasting"].includes(action)?"live_only":null});
   }
  }
+ // Founder-only customer support draft. Never callable by a public shopper or unauthenticated bot.
+ if(req.method==="POST"&&["support_draft","support_handoff"].includes(action)){
+  let b:any;try{b=await req.json()}catch{return respond({error:"invalid_json"},400)}
+  if(typeof b.contact_id!=="string"||!/^[0-9a-f-]{36}$/i.test(b.contact_id))return respond({error:"invalid_contact"},400);
+  const question=typeof b.question==="string"?b.question.trim().slice(0,1000):"";
+  const {data:customer,error:customerError}=await db.from("tk_contacts").select("id,name,preferred_language,do_not_contact").eq("id",b.contact_id).maybeSingle();
+  if(customerError||!customer)return respond({error:"contact_not_found"},404);
+  if(action==="support_handoff"){
+   if(!question)return respond({error:"reason_required"},400);
+   const {data,error}=await db.from("tk_crm_tasks").insert({contact_id:customer.id,title:"Customer support: "+question.slice(0,150),category:"follow_up",status:"open",created_by:user.id,assigned_agent:"human_support"}).select("id,status,created_at").single();
+   return error?respond({error:"handoff_failed"},500):respond({handoff:data},201);
+  }
+  if(!question)return respond({error:"question_required"},400);
+  const lang=/[\u0900-\u097f]/.test(question)?"hi":customer.preferred_language||"en";
+  const [orders,samples,gifting]=await Promise.all([
+   db.from("tk_orders").select("order_ref,order_status,payment_status,delivery_date,paid_at").eq("contact_id",customer.id).eq("payment_environment","live").order("created_at",{ascending:false}).limit(8),
+   db.from("tk_sample_requests").select("sample_ref,status,payment_status,preferred_date").eq("contact_id",customer.id).eq("payment_environment","live").order("created_at",{ascending:false}).limit(5),
+   db.from("tk_gifting_inquiries").select("gifting_ref,status").eq("contact_id",customer.id).order("created_at",{ascending:false}).limit(5)
+  ]);
+  if([orders,samples,gifting].some(x=>x.error))return respond({error:"context_unavailable"},503);
+  const q=question.toLowerCase(),needsOrder=/order|parcel|tracking|delivery status|mera order|ऑर्डर|डिलिवरी|डिलीवरी/.test(q);
+  const needsPayment=/payment|paid|refund|पैसे|पेमेंट/.test(q);
+  const needsSample=/sample|tasting|taste|सैंपल|टेस्टिंग/.test(q);
+  const needsGift=/gift|gifting|corporate|गिफ्ट/.test(q);
+  let reply="",handoff=false,topic="faq";
+  if(needsOrder||needsPayment){
+   topic="order";const match=question.match(/(?:TK[-A-Z0-9]{5,})/i)?.[0];
+   const order=match?(orders.data||[]).find(x=>x.order_ref?.toLowerCase()===match.toLowerCase()):((orders.data||[]).length===1?orders.data![0]:null);
+   if(order){
+    const knownDate=order.delivery_date?(" Scheduled delivery date on record: "+order.delivery_date+"."):" No confirmed delivery date is recorded.";
+    reply="Order "+order.order_ref+" currently shows "+order.order_status.replaceAll("_"," ")+". Payment status: "+order.payment_status+"."+knownDate;
+    if(order.payment_status!=="paid")handoff=true;
+   }else{reply="I cannot confidently identify the order from this customer record. Please verify the order reference; our team can check it.";handoff=true}
+  } else if(needsSample){
+   topic="tasting";const sample=(samples.data||[])[0];
+   reply=sample?"Tasting request "+(sample.sample_ref||"")+" status: "+sample.status+". Payment: "+sample.payment_status+".":"Tasty Kitchen offers a ₹20 prepaid tasting option in Ahmedabad and nearby serviceable areas, subject to availability. I cannot see an active paid tasting on this customer record.";
+  } else if(needsGift){topic="gifting";reply="We offer Diwali gifting enquiries for sweets. Share the required quantity and destination so our team can discuss availability."}
+  else if(/price|rate|cost|₹|कीमत|ભાવ/.test(q)){topic="pricing";reply="Current 250 g / 500 g prices: Makhana Mewa Bites ₹400 / ₹800, Coconut Mewa Ladoo ₹175 / ₹350, Jalebi with Rabdi ₹200 / ₹400. Please confirm availability before promising fulfilment."}
+  else if(/deliver|shipping|all india|india|कहाँ|ડિલિવરી/.test(q)){topic="delivery";reply="Packaged sweets may be delivered across India, subject to serviceability. Jalebi with Rabdi is limited to Ahmedabad. Please confirm your pincode for exact availability."}
+  else {topic="unknown";reply="Thank you for contacting Tasty Kitchen. I will ask our team to review your question so you receive an accurate answer.";handoff=true}
+  if(lang==="hi"&&topic==="unknown")reply="Tasty Kitchen से संपर्क करने के लिए धन्यवाद। हमारी टीम आपके सवाल की जाँच करके जवाब देगी।";
+  return respond({draft:reply,topic,language:lang,human_handoff_recommended:handoff,customer_context:{order_count:(orders.data||[]).length,tasting_count:(samples.data||[]).length,gifting_count:(gifting.data||[]).length},customer_verified_by:"founder_admin_selection",delivery:"draft_only_not_sent",note:"Verify customer identity before any externally sent personalised order response."});
+ }
  if(req.method==="POST"&&action==="order_transition"){
   let body:any;try{body=await req.json()}catch{return respond({error:"invalid_json"},400)}
   if(typeof body.order_id!=="string"||!/^[0-9a-f-]{36}$/i.test(body.order_id)||
