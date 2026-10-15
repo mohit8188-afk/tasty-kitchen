@@ -1342,3 +1342,205 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   }
   .gifting-form{padding:16px}
 }
+
+
+/* Razorpay checkout UX refinement */
+.checkout-secure-note{
+  display:block;
+  margin:12px 0 0;
+  padding:10px 12px;
+  border-radius:12px;
+  background:#f8efe2;
+  color:#6d554d;
+  font-size:10px;
+  line-height:1.45;
+  text-align:center;
+}
+.checkout-pay{
+  min-height:56px;
+  border-radius:18px;
+  font-size:15px;
+}
+.payment-layer{
+  background:rgba(24,6,10,.34);
+}
+.payment-sheet{
+  width:min(560px,calc(100% - 28px));
+  padding:28px;
+  border:1px solid rgba(67,17,23,.08);
+  background:
+    radial-gradient(circle at 100% 0,rgba(211,163,95,.16),transparent 32%),
+    #fffaf3;
+}
+.payment-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  padding-right:42px;
+}
+.payment-head h3{
+  margin:8px 0 18px;
+  font-size:clamp(36px,4vw,48px);
+}
+.razorpay-badge{
+  flex:0 0 auto;
+  margin-top:8px;
+  padding:8px 11px;
+  border:1px solid rgba(67,17,23,.11);
+  border-radius:999px;
+  background:#fff;
+  color:#431117;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.04em;
+}
+.payment-order-card{
+  padding:18px;
+  border:1px solid rgba(67,17,23,.09);
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 10px 30px rgba(67,17,23,.04);
+}
+.payment-summary-top,
+.payment-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+}
+.payment-summary-top{
+  padding-bottom:13px;
+  border-bottom:1px solid rgba(67,17,23,.08);
+}
+.payment-summary-top span{
+  color:#7b615d;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.payment-summary-top strong{
+  color:#431117;
+  font-family:"Playfair Display",serif;
+  font-size:28px;
+}
+.payment-lines{
+  display:grid;
+  gap:7px;
+  padding:14px 0;
+}
+.payment-lines span{
+  color:#3f2a26;
+  font-size:12px;
+  line-height:1.45;
+}
+.payment-meta{
+  padding-top:12px;
+  border-top:1px solid rgba(67,17,23,.08);
+}
+.payment-meta span{
+  color:#806962;
+  font-size:11px;
+}
+.payment-meta b{color:#431117}
+.payment-trust-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:14px 0;
+}
+.payment-trust-row span{
+  padding:8px 10px;
+  border-radius:999px;
+  background:#f1e4c9;
+  color:#5a1820;
+  font-size:10px;
+  font-weight:800;
+}
+.payment-status-card{
+  margin:4px 0 14px;
+  padding:13px 14px;
+  border:1px solid #e7d5be;
+  border-radius:15px;
+  background:#fff8ef;
+  color:#664f47;
+  font-size:12px;
+  line-height:1.5;
+}
+.payment-status-card strong,
+.payment-status-card span{display:block}
+.payment-status-card strong{
+  margin-bottom:3px;
+  color:#431117;
+}
+.payment-status-card[data-state="loading"]::before{
+  content:"";
+  display:inline-block;
+  width:9px;
+  height:9px;
+  margin-right:7px;
+  border:2px solid #d7b47d;
+  border-top-color:#431117;
+  border-radius:50%;
+  vertical-align:-1px;
+  animation:paymentSpin .8s linear infinite;
+}
+.payment-status-card[data-state="ready"]{
+  border-color:#bed9ca;
+  background:#f3faf6;
+  color:#456353;
+}
+.payment-status-card[data-state="error"]{
+  border-color:#e1beb7;
+  background:#fff4f1;
+  color:#7e5047;
+}
+.payment-pay-btn{
+  min-height:58px;
+  border-radius:18px;
+  font-size:15px;
+  box-shadow:0 12px 28px rgba(67,17,23,.14);
+}
+.payment-pay-btn:disabled{
+  opacity:.68;
+  cursor:wait;
+}
+.payment-back-btn{
+  width:100%;
+  min-height:44px;
+  margin-top:8px;
+  border:0;
+  background:transparent;
+  color:#6f5750;
+  font:inherit;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.payment-fineprint{
+  margin:8px 0 0!important;
+  text-align:center;
+  font-size:10px!important;
+  color:#92766c!important;
+}
+@keyframes paymentSpin{to{transform:rotate(360deg)}}
+@media(max-width:640px){
+  .payment-sheet{
+    inset:auto 8px 8px 8px;
+    transform:translateY(20px);
+    width:auto;
+    max-height:calc(100dvh - 16px);
+    padding:22px 18px calc(18px + env(safe-area-inset-bottom));
+    border-radius:26px;
+  }
+  .payment-layer.is-open .payment-sheet{transform:none}
+  .payment-head{padding-right:34px}
+  .payment-head h3{font-size:34px}
+  .razorpay-badge{display:none}
+  .payment-order-card{padding:15px}
+  .payment-pay-btn{min-height:60px}
+}
+@media(prefers-reduced-motion:reduce){
+  .payment-status-card[data-state="loading"]::before{animation:none}
+}
