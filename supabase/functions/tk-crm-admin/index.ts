@@ -24,7 +24,7 @@ Deno.serve(async(req:Request)=>{
     db.from("tk_sample_requests").select("id,payment_environment,payment_status,status").limit(2000),
     db.from("tk_gifting_inquiries").select("id",{count:"exact",head:true}),
     db.from("tk_crm_tasks").select("id,status,due_at").neq("status","completed").neq("status","cancelled").limit(2000),
-    db.from("tk_orders").select("id,payment_environment,payment_status,order_status,total_amount").limit(2000)
+    db.from("tk_orders").select("id,payment_environment,payment_status,order_status,total_amount,paid_at").limit(2000)
    ]);
    if([contacts,samples,gifting,tasks,orders].some(x=>x.error))return respond({error:"query_failed"},500);
    const real=(orders.data||[]).filter(x=>x.payment_environment==="live");
@@ -32,8 +32,12 @@ Deno.serve(async(req:Request)=>{
    const paid=real.filter(x=>x.payment_status==="paid");
    const pendingDelivery=paid.filter(x=>!["delivered","cancelled"].includes(x.order_status));
    const revenue=paid.filter(x=>x.order_status!=="cancelled").reduce((s,x)=>s+Number(x.total_amount||0),0);
+   const istDay=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+   const istDate=(d:string)=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(d));
+   const todayPaid=paid.filter(x=>x.paid_at&&istDate(x.paid_at)===istDay);
+   const todaySales=todayPaid.reduce((sum,x)=>sum+Number(x.total_amount||0),0);
    const overdue=(tasks.data||[]).filter(x=>x.due_at&&new Date(x.due_at)<new Date()).length;
-   return respond({counts:{contacts:contacts.count||0,live_orders:real.length,live_paid_orders:pendingDelivery.length,live_pending_delivery:pendingDelivery.length,live_paid_revenue_inr:revenue,tasting_requests:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid"&&!["delivered","converted","lost","cancelled","rejected"].includes(x.status)).length,live_paid_tastings:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid").length,gifting_inquiries:gifting.count||0,open_tasks:(tasks.data||[]).length,overdue_tasks:overdue,test_orders:test.length},notice:"All financial figures are filtered to live payment environment; refunds and other adjustments require reconciliation."});
+   return respond({counts:{today_sales_inr:todaySales,today_paid_orders:todayPaid.length,sales_date_ist:istDay,contacts:contacts.count||0,live_orders:real.length,live_paid_orders:pendingDelivery.length,live_pending_delivery:pendingDelivery.length,live_paid_revenue_inr:revenue,tasting_requests:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid"&&!["delivered","converted","lost","cancelled","rejected"].includes(x.status)).length,live_paid_tastings:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid").length,gifting_inquiries:gifting.count||0,open_tasks:(tasks.data||[]).length,overdue_tasks:overdue,test_orders:test.length},notice:"Today’s sales = live paid order collections recorded today (Asia/Kolkata). Excludes test, pending and failed payments; refunds and reconciliation may adjust this figure."});
   }
   if(action==="contacts"){
    const search=(u.searchParams.get("q")||"").trim().slice(0,80).replace(/[%_,()]/g,"");
