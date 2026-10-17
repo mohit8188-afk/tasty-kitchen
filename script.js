@@ -710,6 +710,12 @@ document.getElementById('sampleOpenUpi')?.addEventListener('click',()=>{
   document.getElementById('sampleClaimStatus').textContent='After approving the payment in your UPI app, return here and tap “I\'ve completed the payment.” We will check the bank credit.';
   tkLaunchUpi(activeSampleUpi,'sample');
 });
+document.getElementById('sampleUpiHelp')?.addEventListener('toggle',e=>{
+  if(!e.currentTarget.open||!activeSampleUpi)return;
+  activeSampleUpi.payment_attempted=true;
+  sessionStorage.setItem('tkManualSampleCheckout',JSON.stringify(activeSampleUpi));
+  document.getElementById('sampleClaimPaid').hidden=false;
+});
 document.getElementById('sampleCopyUpi')?.addEventListener('click',async()=>{
   if(!activeSampleUpi)return;
   try{await navigator.clipboard.writeText(TK_RECEIVING_UPI_VPA);showToast('UPI ID copied. Confirm the payee and enter the exact amount.');}
@@ -956,6 +962,12 @@ function startManualPayment(){
   document.getElementById('orderClaimPaid').hidden=false;
   tkLaunchUpi(preparedPayment.created,'order');
 }
+document.getElementById('orderUpiHelp')?.addEventListener('toggle',e=>{
+  if(!e.currentTarget.open||!preparedPayment)return;
+  preparedPayment.payment_attempted=true;
+  sessionStorage.setItem('tkManualOrderCheckout',JSON.stringify(preparedPayment));
+  document.getElementById('orderClaimPaid').hidden=false;
+});
 document.getElementById('copyOrderUpi')?.addEventListener('click',async()=>{
   if(!preparedPayment?.created)return;
   try{await navigator.clipboard.writeText(TK_RECEIVING_UPI_VPA);showToast('UPI ID copied. Confirm the payee and enter the exact amount.');}
