@@ -1610,3 +1610,17 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
  .upi-main-pay-btn,.upi-finished-btn{min-height:56px;font-size:15px;}
  .payment-head h3{font-size:clamp(26px,7vw,34px);}
 }
+
+/* Failed sample checkout must show a persistent, legible retry message. */
+.sample-payment-error {
+  display:block!important;
+  margin:12px 0 14px;
+  padding:13px 15px;
+  border:1px solid #d49e8e;
+  background:#fff1ea;
+  border-radius:12px;
+  color:#6e2721;
+  font:600 13px/1.55 system-ui,-apple-system,sans-serif;
+  overflow-wrap:anywhere;
+}
+.sample-payment-error[hidden] {display:none!important;}
