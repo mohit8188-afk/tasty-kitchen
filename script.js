@@ -11,7 +11,7 @@ const PRODUCTS = [
       {label:'500g', price:800, preview:false}
     ],
     ingredients: ['Makhana','Dates','Cashew','Almond','Raisins','Desiccated coconut','Ghee','Limited added sugar'],
-    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. ₹20 tasting trial requests are limited to the Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. ₹50 tasting trial requests are limited to the Ahmedabad + nearby sample route.',
     care: 'Keep the box sealed in a cool, dry place away from direct heat and moisture. For best texture and flavour, enjoy fresh and follow the best-before / use-by guidance printed on the pack.',
     allergens: 'Contains tree nuts (cashew and almond) and milk-derived ghee. Contains coconut. Prepared in a home kitchen where other food allergens may also be handled.',
     gifting: 'Available in 250g and 500g festive boxes. For larger gifting quantities, contact Tasty Kitchen for availability.',
@@ -38,7 +38,7 @@ const PRODUCTS = [
       {label:'500g', price:350, preview:false}
     ],
     ingredients: ['Coconut','Cashew','Almond','Raisins','Ghee','Final recipe to be confirmed'],
-    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. ₹20 tasting trial requests are limited to the Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery across India. Prepared fresh after order confirmation; dispatch timing is shared with the confirmed order. ₹50 tasting trial requests are limited to the Ahmedabad + nearby sample route.',
     care: 'Keep sealed in a cool, dry place away from direct heat and moisture. For best taste and texture, enjoy fresh and follow the best-before / use-by guidance printed on the pack.',
     allergens: 'Contains tree nuts (cashew and almond) and milk-derived ghee. Contains coconut. Prepared in a home kitchen where other food allergens may also be handled.',
     gifting: 'Available in 250g and 500g festive boxes. Larger gifting quantities are subject to availability.',
@@ -63,7 +63,7 @@ const PRODUCTS = [
       {label:'500g', price:400, preview:false}
     ],
     ingredients: ['Jalebi','Rabdi','Final ingredient and allergen declaration to be confirmed'],
-    delivery: 'Free delivery for Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Prepared fresh for a confirmed local delivery slot; route timing is shared with the order. ₹20 tasting trial requests use the same Ahmedabad + nearby sample route.',
+    delivery: 'Free delivery for Jalebi with Rabdi within Ahmedabad and nearby serviceable areas. Prepared fresh for a confirmed local delivery slot; route timing is shared with the order. ₹50 tasting trial requests use the same Ahmedabad + nearby sample route.',
     care: 'Keep the rabdi refrigerated on receipt. For the best experience, enjoy the jalebi and rabdi as fresh as possible and follow the use-by guidance supplied with the pack. Do not leave the rabdi unrefrigerated for extended periods.',
     allergens: 'Contains milk/dairy (rabdi). The final jalebi ingredient declaration will be printed on the pack; if you have a cereal/gluten allergy or another severe food allergy, please confirm with Tasty Kitchen before ordering.',
     gifting: 'Available in 250g and 500g packs for Ahmedabad + nearby serviceable areas.',
@@ -587,6 +587,7 @@ function openSampleRequest(productId=activeProduct?.id){
   const success=document.getElementById('sampleSuccess');
   sampleForm.hidden=false;
   success.hidden=true;
+  document.getElementById('sampleManualPayment').hidden=true;
   success.dataset.sampleRef='';
   success.dataset.mobile='';
   document.getElementById('sampleAddressForm').hidden=true;
@@ -620,125 +621,76 @@ document.querySelectorAll('[data-close-sample]').forEach(el=>el.addEventListener
   const layer=document.getElementById('sampleLayer');
   if(layer.classList.contains('is-open')) setLayer(layer,false);
 }));
+
+const TK_MANUAL_SAMPLE_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-manual-sample';
+let activeSampleUpi=null;
 document.getElementById('sampleForm').addEventListener('submit',async e=>{
   e.preventDefault();
-  if(!e.currentTarget.reportValidity()) return;
-
-  const form=e.currentTarget;
-  const submit=form.querySelector('button[type="submit"]');
-  const phone=document.getElementById('samplePhone').value.trim();
-  const area=document.getElementById('sampleArea').value.trim().replace(/\s+/g,' ');
-  const date=document.getElementById('sampleDate').value;
-
-  if(area.length<3){
-    document.getElementById('sampleArea').setCustomValidity('Please enter your Ahmedabad locality.');
-    document.getElementById('sampleArea').reportValidity();
-    document.getElementById('sampleArea').setCustomValidity('');
-    return;
-  }
-
+  if(!e.currentTarget.reportValidity())return;
+  const form=e.currentTarget,submit=form.querySelector('button[type="submit"]');
   const qs=new URLSearchParams(location.search);
   const payload={
+    action:'create',
     name:document.getElementById('sampleName').value.trim(),
-    mobile:phone,
-    locality:area,
-    preferred_date:date,
+    mobile:document.getElementById('samplePhone').value.trim(),
+    locality:document.getElementById('sampleArea').value.trim().replace(/\\s+/g,' '),
+    preferred_date:document.getElementById('sampleDate').value,
     product_id:document.getElementById('sampleSweet').value,
-    client_checkout_id:(crypto?.randomUUID?.() || ('tks-'+Date.now()+'-'+Math.random().toString(36).slice(2))),
-    source:'website',
-    utm_source:qs.get('utm_source'),
-    utm_medium:qs.get('utm_medium'),
-    utm_campaign:qs.get('utm_campaign'),
-    utm_content:qs.get('utm_content')
+    client_checkout_id:sessionStorage.getItem('tkManualSampleCheckoutId')||(crypto?.randomUUID?.()||('tks-'+Date.now()+'-'+Math.random().toString(36).slice(2))),
+    source:'website',utm_source:qs.get('utm_source'),utm_medium:qs.get('utm_medium'),
+    utm_campaign:qs.get('utm_campaign'),utm_content:qs.get('utm_content')
   };
-
-  submit.disabled=true;
-  const original=submit.textContent;
-  submit.textContent='Preparing ₹20 secure payment…';
-
+  sessionStorage.setItem('tkManualSampleCheckoutId',payload.client_checkout_id);
+  submit.disabled=true;submit.textContent='Reserving unique payment amount…';
   try{
-    const res=await fetch('https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-sample-request',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
+    const res=await fetch(TK_MANUAL_SAMPLE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json().catch(()=>({}));
-    if(!res.ok){
-      const messages={
-        active_sample_exists:data.sample_ref ? 'A tasting request is already active. Reference: '+data.sample_ref : 'A tasting request is already active for this mobile number.',
-        sample_cooldown:data.sample_ref ? 'A ₹20 tasting trial was already used recently. Reference: '+data.sample_ref+'. Please try again after the '+(data.cooldown_days || 30)+'-day tasting window.' : 'A ₹20 tasting trial was already used recently for this mobile number.',
-        date_closed:'Tasting requests are closed for this date.',
-        date_full:'Tasting slots are full for this date. Please choose another date.',
-        date_outside_window:'Please choose a date within the available tasting booking window.'
-      };
-      showToast(messages[data.error] || data.message || 'We could not prepare the tasting request. Please try again.');
-      return;
-    }
-
-    await loadRazorpayCheckout();
-    const product=PRODUCTS.find(p=>p.id===payload.product_id);
-    const options={
-      key:data.key_id,
-      amount:data.amount_paise,
-      currency:data.currency || 'INR',
-      name:'Tasty Kitchen',
-      description:'₹20 tasting trial • '+(product?.name || 'Festive sweet'),
-      order_id:data.razorpay_order_id,
-      prefill:{name:payload.name,contact:payload.mobile},
-      notes:{sample_ref:data.sample_ref},
-      theme:{color:'#431117'},
-      modal:{
-        ondismiss:()=>{
-          submit.disabled=false;
-          submit.textContent=original;
-          showToast('Payment not completed. No tasting slot was confirmed.');
-        }
-      },
-      handler:async response=>{
-        submit.textContent='Verifying payment…';
-        const verifyRes=await fetch(TK_SAMPLE_PAYMENT_VERIFY_URL,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(response)
-        });
-        const verified=await verifyRes.json().catch(()=>({}));
-        if(!verifyRes.ok || !verified.ok){
-          submit.disabled=false;
-          submit.textContent=original;
-          showToast(verified.message || 'Payment verification is pending. Please do not pay again. Contact Tasty Kitchen.');
-          return;
-        }
-
-        sessionStorage.removeItem('tkSampleDraft');
-        trackEvent('sample_submit_success',{product_id:payload.product_id,metadata:{sample_ref:verified.sample_ref || data.sample_ref,amount:20,payment:'razorpay'}});
-        const success=document.getElementById('sampleSuccess');
-        const ref=verified.sample_ref || data.sample_ref;
-        success.dataset.sampleRef=ref;
-        success.dataset.mobile=phone;
-        document.getElementById('sampleSuccessRef').textContent=ref;
-        document.getElementById('sampleSuccessMessage').textContent='₹20 payment confirmed. We’ll confirm the route and tasting slot before delivery. Add the delivery address now, or keep this Sample ID for later follow-up.';
-        form.hidden=true;
-        success.hidden=false;
-        success.scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
-        submit.disabled=false;
-        submit.textContent=original;
-      }
-    };
-
-    const rz=new Razorpay(options);
-    rz.on('payment.failed',response=>{
-      const reason=response?.error?.description || 'Payment failed. No tasting slot was confirmed.';
-      showToast(reason);
-      submit.disabled=false;
-      submit.textContent=original;
-    });
-    rz.open();
-  }catch{
-    sessionStorage.setItem('tkSampleDraft',JSON.stringify({...payload,createdAt:Date.now()}));
-    showToast('Payment service could not be opened. Your details are kept on this device; please try again.');
-    submit.disabled=false;
-    submit.textContent=original;
-  }
+    if(!res.ok||!data.ok)throw Error(data.message||'Could not prepare the sample. Please try again.');
+    if(!data.upi_uri&&!data.payee_phone)throw Error('UPI payment destination is not configured.');
+    activeSampleUpi={...data,client_checkout_id:payload.client_checkout_id};
+    sessionStorage.setItem('tkManualSampleCheckout',JSON.stringify(activeSampleUpi));
+    document.getElementById('samplePayAmount').textContent='₹'+Number(data.upi_amount).toFixed(2);
+    document.getElementById('samplePayRef').textContent=data.sample_ref;
+    document.getElementById('samplePayVpa').textContent=data.upi_vpa || ('UPI number +91 '+data.payee_phone);
+    document.getElementById('sampleOpenUpi').textContent=data.upi_uri?'Open UPI app':'Copy receiving UPI number';
+    document.getElementById('sampleCopyUpi').textContent=data.upi_vpa?'Copy UPI ID':'Copy exact amount';
+    document.getElementById('sampleManualPayment').hidden=false;
+    form.hidden=true;
+    document.getElementById('sampleManualPayment').scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
+  }catch(err){showToast(err.message||'Could not prepare the payment.');}
+  finally{submit.disabled=false;submit.textContent='Continue to ₹50 sample payment';}
+});
+document.getElementById('sampleOpenUpi')?.addEventListener('click',()=>{
+  if(!activeSampleUpi)return;
+  if(activeSampleUpi.upi_uri){location.href=activeSampleUpi.upi_uri;return;}
+  navigator.clipboard?.writeText(activeSampleUpi.payee_phone).then(()=>showToast('UPI number copied. Open your UPI app, verify recipient and pay the exact amount.')).catch(()=>showToast('Open your UPI app and pay the exact amount to '+activeSampleUpi.payee_phone));
+});
+document.getElementById('sampleCopyUpi')?.addEventListener('click',async()=>{
+  if(!activeSampleUpi)return;
+  try{await navigator.clipboard.writeText(activeSampleUpi.upi_vpa||Number(activeSampleUpi.upi_amount).toFixed(2));showToast(activeSampleUpi.upi_vpa?'UPI ID copied. Pay the exact amount shown.':'Exact amount copied. Verify recipient before paying.');}
+  catch{showToast('Please copy the UPI ID shown above.');}
+});
+document.getElementById('sampleClaimPaid')?.addEventListener('click',async()=>{
+  if(!activeSampleUpi)return;
+  const btn=document.getElementById('sampleClaimPaid'),status=document.getElementById('sampleClaimStatus');
+  btn.disabled=true;status.textContent='Saving payment report…';
+  try{
+    const res=await fetch(TK_MANUAL_SAMPLE_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'claim',sample_ref:activeSampleUpi.sample_ref,client_checkout_id:activeSampleUpi.client_checkout_id})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||!data.ok)throw Error(data.message||'Please retry or contact us.');
+    const success=document.getElementById('sampleSuccess');
+    success.dataset.sampleRef=activeSampleUpi.sample_ref;
+    success.dataset.clientCheckoutId=activeSampleUpi.client_checkout_id;
+    success.dataset.mobile=document.getElementById('samplePhone').value.trim();
+    document.getElementById('sampleSuccessRef').textContent=activeSampleUpi.sample_ref;
+    document.getElementById('sampleSuccessMessage').textContent='We received your payment report, not proof of bank credit. We will verify the exact ₹'+Number(activeSampleUpi.upi_amount).toFixed(2)+' transfer and then confirm your tasting slot. You can add the delivery address now.';
+    success.hidden=false;document.getElementById('sampleManualPayment').hidden=true;
+    sessionStorage.removeItem('tkManualSampleCheckoutId');
+    sessionStorage.removeItem('tkManualSampleCheckout');
+    trackEvent('sample_payment_reported',{metadata:{sample_ref:activeSampleUpi.sample_ref,upi_amount:activeSampleUpi.upi_amount}});
+    success.scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
+  }catch(err){status.textContent=err.message||'Payment report failed';btn.disabled=false;}
 });
 document.getElementById('sampleAddressToggle').addEventListener('click',()=>{
   const form=document.getElementById('sampleAddressForm');
@@ -766,13 +718,13 @@ document.getElementById('sampleAddressForm').addEventListener('submit',async e=>
   const original=submit.textContent;
   submit.textContent='Saving address…';
   try{
-    const res=await fetch('https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-sample-request',{
+    const res=await fetch(TK_MANUAL_SAMPLE_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         action:'complete_address',
         sample_ref:success.dataset.sampleRef,
-        mobile:success.dataset.mobile,
+        client_checkout_id:success.dataset.clientCheckoutId,
         address,
         city
       })
@@ -780,7 +732,7 @@ document.getElementById('sampleAddressForm').addEventListener('submit',async e=>
     const data=await res.json().catch(()=>({}));
     if(!res.ok){
       const messages={
-        address_sample_exists:'A ₹20 tasting trial was already requested recently for this address/locality. Please use the existing request or wait for the tasting window to reopen.',
+        address_sample_exists:'A ₹50 tasting trial was already requested recently for this address/locality. Please use the existing request or wait for the tasting window to reopen.',
         invalid_city:'Please enter the delivery city.',
         sample_verification_failed:'We could not verify this Sample ID with the mobile number.'
       };
@@ -877,7 +829,7 @@ document.querySelectorAll('[data-close-checkout]').forEach(el=>el.addEventListen
 
 const date=new Date();date.setDate(date.getDate()+1);
 document.getElementById('deliveryDate').min=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-const TK_PAYMENT_CREATE_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-payment-create';
+const TK_PAYMENT_CREATE_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-manual-upi';
 const TK_PAYMENT_VERIFY_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-payment-verify';
 let pendingCheckoutPayload=null;
 let preparedPayment=null;
@@ -916,142 +868,71 @@ function checkoutAttribution(){
   };
 }
 
-async function prepareRazorpayPayment(){
-  const btn=document.getElementById('payNowBtn');
-  const status=document.getElementById('paymentStatus');
-  if(!pendingCheckoutPayload || !cart.length) throw new Error('checkout_not_ready');
-  if(preparedPayment) return preparedPayment;
-  if(preparePaymentPromise) return preparePaymentPromise;
 
-  btn.disabled=true;
-  btn.textContent='Preparing secure payment…';
-  status.dataset.state='loading';
-  status.textContent='Checking your order and connecting securely to Razorpay…';
-
-  const clientCheckoutId=(crypto?.randomUUID?.() || ('tk-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
-  const payload={
-    ...pendingCheckoutPayload,
-    client_checkout_id:clientCheckoutId,
-    items:buildServerCart(),
-    attribution:checkoutAttribution()
-  };
-
+async function prepareManualPayment(){
+  const btn=document.getElementById('payNowBtn'),status=document.getElementById('paymentStatus');
+  if(!pendingCheckoutPayload||!cart.length)throw Error('checkout_not_ready');
+  if(preparedPayment)return preparedPayment;
+  if(preparePaymentPromise)return preparePaymentPromise;
+  btn.disabled=true;status.textContent='Reserving your unique UPI payment amount…';
+  const id=sessionStorage.getItem('tkManualOrderCheckoutId')||(crypto?.randomUUID?.()||('tk-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+  sessionStorage.setItem('tkManualOrderCheckoutId',id);
+  const payload={...pendingCheckoutPayload,client_checkout_id:id,items:buildServerCart(),attribution:checkoutAttribution(),action:'create'};
   preparePaymentPromise=(async()=>{
-    const createRes=await fetch(TK_PAYMENT_CREATE_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    const created=await createRes.json().catch(()=>({}));
-    if(!createRes.ok){
-      const err=new Error(created.message || 'We could not prepare secure payment.');
-      err.code=created.error || 'payment_prepare_failed';
-      throw err;
-    }
-
-    const serverTotal=Number(created.amount_paise)/100;
-    if(serverTotal!==cartSubtotal()){
-      const err=new Error('The server price changed. Please reopen your cart before paying.');
-      err.code='price_mismatch';
-      throw err;
-    }
-
-    await loadRazorpayCheckout();
-    preparedPayment={created,payload,serverTotal};
-    status.dataset.state='ready';
-    status.innerHTML='<strong>Ready for secure payment</strong><span>Your total was rechecked on our server. Click below to open Razorpay.</span>';
-    btn.disabled=false;
-    btn.textContent='Pay '+money(serverTotal)+' securely';
+    const res=await fetch(TK_PAYMENT_CREATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||!data.ok)throw Error(data.message||'UPI checkout is temporarily unavailable.');
+    if(Number(data.total_amount)!==cartSubtotal())throw Error('Cart prices changed. Please reopen checkout.');
+    if(!data.upi_uri&&!data.payee_phone)throw Error('No receiving UPI details are configured.');
+    preparedPayment={created:data,payload,serverTotal:Number(data.total_amount)};
+    sessionStorage.setItem('tkManualOrderCheckout',JSON.stringify(preparedPayment));
+    const adjusted=Number(data.upi_amount)-Number(data.total_amount);
+    status.innerHTML='<strong>Pay exactly ₹'+Number(data.upi_amount).toFixed(2)+'</strong><span>Items ₹'+Number(data.total_amount).toFixed(2)+' + unique bank-matching adjustment ₹'+adjusted.toFixed(2)+' • Order '+escapeHtml(data.order_ref)+' • Receiving '+(data.upi_vpa?'UPI ID: ':'UPI number: ')+escapeHtml(data.upi_vpa||data.payee_phone)+'. Verify the payee in your UPI app.</span>';
+    btn.disabled=false;btn.textContent=data.upi_uri?('Pay ₹'+Number(data.upi_amount).toFixed(2)+' with UPI'):'Copy UPI number to pay';
+    document.getElementById('orderClaimPaid').hidden=false;
+    document.getElementById('copyOrderUpi').hidden=false;
+    document.getElementById('copyOrderUpi').textContent=data.upi_vpa?'Copy receiving UPI ID':'Copy exact amount';
     return preparedPayment;
-  })().catch(err=>{
-    preparedPayment=null;
-    status.dataset.state='error';
-    status.innerHTML='<strong>We need one quick correction</strong><span>'+escapeHtml(err.message || 'Please review your checkout details and try again.')+'</span>';
-    btn.disabled=false;
-    btn.textContent='Try secure payment again';
-    throw err;
-  }).finally(()=>{preparePaymentPromise=null;});
-
+  })().catch(err=>{status.innerHTML='<strong>Unable to prepare payment</strong><span>'+escapeHtml(err.message)+'</span>';btn.disabled=false;btn.textContent='Try again';throw err;})
+    .finally(()=>{preparePaymentPromise=null;});
   return preparePaymentPromise;
 }
-
-async function startRazorpayPayment(){
-  const btn=document.getElementById('payNowBtn');
-  const status=document.getElementById('paymentStatus');
-
-  try{
-    const ready=preparedPayment || await prepareRazorpayPayment();
-    const {created,payload,serverTotal}=ready;
-
-    btn.disabled=true;
-    btn.textContent='Opening Razorpay…';
-    status.dataset.state='loading';
-    status.textContent='Opening Razorpay secure checkout…';
-
-    const options={
-      key:created.key_id,
-      amount:created.amount_paise,
-      currency:created.currency || 'INR',
-      name:'Tasty Kitchen',
-      description:'Fresh festive sweets',
-      order_id:created.razorpay_order_id,
-      prefill:{name:payload.name,contact:payload.mobile},
-      notes:{order_ref:created.order_ref},
-      theme:{color:'#431117'},
-      modal:{
-        ondismiss:()=>{
-          status.dataset.state='ready';
-          status.innerHTML='<strong>Payment not completed</strong><span>Your order is still ready. You can reopen Razorpay without rebuilding the cart.</span>';
-          btn.disabled=false;
-          btn.textContent='Pay '+money(serverTotal)+' securely';
-        }
-      },
-      handler:async response=>{
-        status.dataset.state='loading';
-        status.textContent='Payment received. Verifying securely…';
-        const verifyRes=await fetch(TK_PAYMENT_VERIFY_URL,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(response)
-        });
-        const verified=await verifyRes.json().catch(()=>({}));
-        if(!verifyRes.ok || !verified.ok){
-          status.dataset.state='error';
-          status.innerHTML='<strong>Verification pending</strong><span>'+escapeHtml(verified.message || 'Please do not pay again. Contact Tasty Kitchen with your payment details.')+'</span>';
-          btn.disabled=false;
-          btn.textContent='Check payment again';
-          return;
-        }
-
-        window.tkTrackPaymentComplete?.(verified.order_ref,serverTotal);
-        cart=[];
-        saveCart();
-        renderCart();
-        pendingCheckoutPayload=null;
-        preparedPayment=null;
-        closePayment();
-        closeCheckout();
-        showToast('Payment confirmed. Order '+verified.order_ref+' is confirmed.');
-      }
-    };
-
-    const rz=new Razorpay(options);
-    rz.on('payment.failed',response=>{
-      const reason=response?.error?.description || 'Payment failed. No confirmed order was created.';
-      status.dataset.state='error';
-      status.innerHTML='<strong>Payment was not completed</strong><span>'+escapeHtml(reason)+'</span>';
-      btn.disabled=false;
-      btn.textContent='Try payment again';
-    });
-    rz.open();
-  }catch{
-    // prepareRazorpayPayment already renders the actionable error.
-  }
+function startManualPayment(){
+  if(!preparedPayment){prepareManualPayment().catch(()=>{});return;}
+  const link=preparedPayment.created?.upi_uri;
+  if(link){location.href=link;return;}
+  const mobile=preparedPayment.created?.payee_phone;
+  if(mobile)navigator.clipboard?.writeText(mobile).then(()=>showToast('UPI number copied. Open your UPI app, verify recipient and pay the exact amount.')).catch(()=>showToast('Pay the exact amount to UPI number '+mobile));
 }
+document.getElementById('copyOrderUpi')?.addEventListener('click',async()=>{
+  if(!preparedPayment?.created)return;
+  const details=preparedPayment.created;
+  try{await navigator.clipboard.writeText(details.upi_vpa||Number(details.upi_amount).toFixed(2));showToast(details.upi_vpa?'UPI ID copied. Pay the exact amount shown.':'Exact amount copied. Verify recipient before paying.');}
+  catch{showToast('Please copy the receiving UPI ID shown above.');}
+});
+document.getElementById('orderClaimPaid')?.addEventListener('click',async()=>{
+  if(!preparedPayment)return;
+  const btn=document.getElementById('orderClaimPaid'),status=document.getElementById('paymentStatus');
+  btn.disabled=true;status.textContent='Saving your payment report…';
+  try{
+    const d=preparedPayment;
+    const r=await fetch(TK_PAYMENT_CREATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'claim',client_checkout_id:d.payload.client_checkout_id,order_ref:d.created.order_ref})});
+    const result=await r.json().catch(()=>({}));
+    if(!r.ok||!result.ok)throw Error(result.message||'Could not save your payment report.');
+    status.innerHTML='<strong>Payment report received • '+escapeHtml(d.created.order_ref)+'</strong><span>Waiting for bank credit verification. This order is not confirmed yet. Please do not pay twice.</span>';
+    btn.hidden=true;document.getElementById('payNowBtn').hidden=true;
+    sessionStorage.removeItem('tkManualOrderCheckoutId');
+    sessionStorage.removeItem('tkManualOrderCheckout');
+    cart=[];saveCart();renderCart();
+    trackEvent('order_payment_reported',{metadata:{order_ref:d.created.order_ref,total:d.created.upi_amount}});
+  }catch(err){status.textContent=err.message||'Report failed. Please retry.';btn.disabled=false;}
+});
+
 const paymentLayer=document.getElementById('paymentLayer');
 function closePayment(){if(paymentLayer.classList.contains('is-open')) setLayer(paymentLayer,false);}
 document.querySelectorAll('[data-close-payment]').forEach(el=>el.addEventListener('click',closePayment));
-document.getElementById('payNowBtn')?.addEventListener('click',startRazorpayPayment);
+document.getElementById('payNowBtn')?.addEventListener('click',startManualPayment);
 
 document.getElementById('checkoutForm').addEventListener('submit',e=>{
   e.preventDefault();
@@ -1079,14 +960,47 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
   const status=document.getElementById('paymentStatus');
   const payBtn=document.getElementById('payNowBtn');
   status.dataset.state='loading';
-  status.textContent='Checking your order and connecting securely to Razorpay…';
+  status.textContent='Reserving your unique UPI amount…';
   payBtn.disabled=true;
-  payBtn.textContent='Preparing secure payment…';
+  payBtn.textContent='Preparing UPI payment…';
   setLayer(paymentLayer,true);
-  prepareRazorpayPayment().catch(()=>{});
+  document.getElementById('payNowBtn').hidden=false;
+  document.getElementById('orderClaimPaid').hidden=true;
+  document.getElementById('copyOrderUpi').hidden=true;
+  prepareManualPayment().catch(()=>{});
 });
 
 
+
+// Restore checkout after returning from a UPI app; no payment claim is inferred.
+try{
+  const savedSample=JSON.parse(sessionStorage.getItem('tkManualSampleCheckout')||'null');
+  const savedOrder=JSON.parse(sessionStorage.getItem('tkManualOrderCheckout')||'null');
+  if(savedSample?.client_checkout_id && savedSample?.sample_ref && savedSample?.upi_amount){
+    activeSampleUpi=savedSample;
+    document.getElementById('sampleForm').hidden=true;
+    document.getElementById('sampleSuccess').hidden=true;
+    document.getElementById('sampleManualPayment').hidden=false;
+    document.getElementById('samplePayRef').textContent=savedSample.sample_ref;
+    document.getElementById('samplePayAmount').textContent='₹'+Number(savedSample.upi_amount).toFixed(2);
+    document.getElementById('samplePayVpa').textContent=savedSample.upi_vpa||('UPI number +91 '+savedSample.payee_phone);
+    document.getElementById('sampleOpenUpi').textContent=savedSample.upi_uri?'Open UPI app':'Copy receiving UPI number';
+    document.getElementById('sampleCopyUpi').textContent=savedSample.upi_vpa?'Copy UPI ID':'Copy exact amount';
+    setLayer(document.getElementById('sampleLayer'),true);
+  }else if(savedOrder?.created?.order_ref && savedOrder?.created?.upi_amount && savedOrder?.payload?.client_checkout_id){
+    preparedPayment=savedOrder;pendingCheckoutPayload=savedOrder.payload;
+    const data=savedOrder.created;
+    document.getElementById('paymentSummary').innerHTML='<div class="payment-summary-top"><span>Saved order '+escapeHtml(data.order_ref)+'</span><strong>₹'+Number(data.upi_amount).toFixed(2)+'</strong></div>';
+    document.getElementById('paymentStatus').innerHTML='<strong>Payment not automatically verified</strong><span>Pay exactly ₹'+Number(data.upi_amount).toFixed(2)+' to '+escapeHtml(data.upi_vpa||data.payee_phone)+'. If you already paid, tap I\'ve paid once. Do not send a second transfer.</span>';
+    document.getElementById('payNowBtn').disabled=false;
+    document.getElementById('payNowBtn').textContent=data.upi_uri?'Open UPI app':'Copy UPI number to pay';
+    document.getElementById('payNowBtn').hidden=false;
+    document.getElementById('orderClaimPaid').hidden=false;
+    document.getElementById('copyOrderUpi').hidden=false;
+    document.getElementById('copyOrderUpi').textContent=data.upi_vpa?'Copy receiving UPI ID':'Copy exact amount';
+    setLayer(checkoutLayer,true);setLayer(paymentLayer,true);
+  }
+}catch{sessionStorage.removeItem('tkManualOrderCheckout');sessionStorage.removeItem('tkManualSampleCheckout');}
 
 const TK_REVIEW_SUBMIT_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-review-submit';
 const TK_PUBLIC_REVIEWS_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-public-reviews';

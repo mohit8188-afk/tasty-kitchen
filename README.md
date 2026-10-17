@@ -1,3 +1,23 @@
+# Tasty Kitchen — Live temporary payment mode (17 October 2026)
+
+## Current launch mode: ₹50 samples and temporary manual UPI
+The Razorpay merchant is not live-enabled. All customer-facing product and tasting checkouts now use **manual UPI**:
+- Sample base price is **₹50**. The actual UPI amount is ₹50.00–₹51.99 as a server-allocated, globally unique, non-reused payment matching amount.
+- Product orders: menu/cart base total plus ₹0.00–₹1.99 unique adjustment, shown before payment.
+- Recipient: founder-designated UPI receiving number **9834621628**. Set `TK_MANUAL_UPI_VPA` in Supabase Edge Function secrets only after the merchant confirms an actual receiving UPI ID. If absent, website presents the number with explicit instructions to confirm the payee in the UPI app.
+- Frontend uses `tk-manual-sample` and `tk-manual-upi` Edge Functions. They recalculate server pricing, reserve unique paisa amounts using `tk_allocate_upi_amount`, and save payment as `pending` until **bank credit independently verified**.
+- Customer can tap "I've paid" without screenshots or UTR. This only sets `payment_submitted_at`; it never marks payment as paid.
+- Founder CRM `/crm/` → **UPI payments** shows sample and product requests sorted by who reported payment; shows exact amount, customer details and bank review controls.
+- Founder must check the receiving bank transaction, amount, date, sender and use a **real bank transaction reference** when selecting Verify bank credit. This invokes audited `tk_review_upi_payment` and moves a sample to requested or order to confirmed. Fake customer acknowledgement cannot bypass the review.
+- One bank transaction reference cannot be used twice to confirm payments. New tables have RLS enabled; privileged RPCs are service-role only. DB smoke tests are rolled back.
+- If unique paisa amounts are exhausted, API rejects further payment creation; it never silently reuses an amount.
+- Mobile checkout can restore the pending-payment screen after returning from a UPI app.
+- Razorpay checkout and webhook functions remain deployed and unchanged. Switching back requires explicit website mode change after merchant activation and testing, not merely flipping secrets.
+- Caveat: exact paisa value is useful for matching, but **not cryptographic proof of receipt**. Do not release product or confirm a tasting slot without real bank reconciliation.
+- Before promotion: staff should perform one controlled real UPI credit test to confirm phone number, displayed payee, bank entry, CRM review and full mobile flow. This acceptance cannot be inferred from code deployment.
+
+---
+
 # Tasty Kitchen — Website V3 (Family Preview)
 
 This version corrects the payment flow and adds complete demo content for Coconut Mewa Ladoo.
