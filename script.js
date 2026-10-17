@@ -646,12 +646,14 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     const res=await fetch(TK_MANUAL_SAMPLE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data=await res.json().catch(()=>({}));
     if(!res.ok||!data.ok)throw Error(data.message||'Could not prepare the sample. Please try again.');
-    if(!data.upi_uri||!data.upi_vpa)throw Error('UPI payment destination is not configured.');
+    if(!data.upi_uri&&!data.payee_phone)throw Error('UPI payment destination is not configured.');
     activeSampleUpi={...data,client_checkout_id:payload.client_checkout_id};
     sessionStorage.setItem('tkManualSampleCheckout',JSON.stringify(activeSampleUpi));
     document.getElementById('samplePayAmount').textContent='₹'+Number(data.upi_amount).toFixed(2);
     document.getElementById('samplePayRef').textContent=data.sample_ref;
-    document.getElementById('samplePayVpa').textContent=data.upi_vpa;
+    document.getElementById('samplePayVpa').textContent=data.upi_vpa || ('UPI number +91 '+data.payee_phone);
+    document.getElementById('sampleOpenUpi').textContent=data.upi_uri?'Open UPI app':'Copy receiving UPI number';
+    document.getElementById('sampleCopyUpi').textContent=data.upi_vpa?'Copy UPI ID':'Copy exact amount';
     document.getElementById('sampleManualPayment').hidden=false;
     form.hidden=true;
     document.getElementById('sampleManualPayment').scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
@@ -659,12 +661,13 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
   finally{submit.disabled=false;submit.textContent='Continue to ₹50 sample payment';}
 });
 document.getElementById('sampleOpenUpi')?.addEventListener('click',()=>{
-  if(!activeSampleUpi?.upi_uri)return;
-  location.href=activeSampleUpi.upi_uri;
+  if(!activeSampleUpi)return;
+  if(activeSampleUpi.upi_uri){location.href=activeSampleUpi.upi_uri;return;}
+  navigator.clipboard?.writeText(activeSampleUpi.payee_phone).then(()=>showToast('UPI number copied. Open your UPI app, verify recipient and pay the exact amount.')).catch(()=>showToast('Open your UPI app and pay the exact amount to '+activeSampleUpi.payee_phone));
 });
 document.getElementById('sampleCopyUpi')?.addEventListener('click',async()=>{
-  if(!activeSampleUpi?.upi_vpa)return;
-  try{await navigator.clipboard.writeText(activeSampleUpi.upi_vpa);showToast('UPI ID copied. Pay the exact unique amount shown.');}
+  if(!activeSampleUpi)return;
+  try{await navigator.clipboard.writeText(activeSampleUpi.upi_vpa||Number(activeSampleUpi.upi_amount).toFixed(2));showToast(activeSampleUpi.upi_vpa?'UPI ID copied. Pay the exact amount shown.':'Exact amount copied. Verify recipient before paying.');}
   catch{showToast('Please copy the UPI ID shown above.');}
 });
 document.getElementById('sampleClaimPaid')?.addEventListener('click',async()=>{
@@ -880,14 +883,15 @@ async function prepareManualPayment(){
     const data=await res.json().catch(()=>({});
     if(!res.ok||!data.ok)throw Error(data.message||'UPI checkout is temporarily unavailable.');
     if(Number(data.total_amount)!==cartSubtotal())throw Error('Cart prices changed. Please reopen checkout.');
-    if(!data.upi_uri||!data.upi_vpa)throw Error('No verified receiving UPI address is configured.');
+    if(!data.upi_uri&&!data.payee_phone)throw Error('No receiving UPI details are configured.');
     preparedPayment={created:data,payload,serverTotal:Number(data.total_amount)};
     sessionStorage.setItem('tkManualOrderCheckout',JSON.stringify(preparedPayment));
     const adjusted=Number(data.upi_amount)-Number(data.total_amount);
-    status.innerHTML='<strong>Pay exactly ₹'+Number(data.upi_amount).toFixed(2)+'</strong><span>Items ₹'+Number(data.total_amount).toFixed(2)+' + unique bank-matching adjustment ₹'+adjusted.toFixed(2)+' • Order '+escapeHtml(data.order_ref)+' • Receiving UPI ID: '+escapeHtml(data.upi_vpa)+'. Verify the payee in your UPI app.</span>';
-    btn.disabled=false;btn.textContent='Pay ₹'+Number(data.upi_amount).toFixed(2)+' with UPI';
+    status.innerHTML='<strong>Pay exactly ₹'+Number(data.upi_amount).toFixed(2)+'</strong><span>Items ₹'+Number(data.total_amount).toFixed(2)+' + unique bank-matching adjustment ₹'+adjusted.toFixed(2)+' • Order '+escapeHtml(data.order_ref)+' • Receiving '+(data.upi_vpa?'UPI ID: ':'UPI number: ')+escapeHtml(data.upi_vpa||data.payee_phone)+'. Verify the payee in your UPI app.</span>';
+    btn.disabled=false;btn.textContent=data.upi_uri?('Pay ₹'+Number(data.upi_amount).toFixed(2)+' with UPI'):'Copy UPI number to pay';
     document.getElementById('orderClaimPaid').hidden=false;
     document.getElementById('copyOrderUpi').hidden=false;
+    document.getElementById('copyOrderUpi').textContent=data.upi_vpa?'Copy receiving UPI ID':'Copy exact amount';
     return preparedPayment;
   })().catch(err=>{status.innerHTML='<strong>Unable to prepare payment</strong><span>'+escapeHtml(err.message)+'</span>';btn.disabled=false;btn.textContent='Try again';throw err;})
     .finally(()=>{preparePaymentPromise=null;});
@@ -896,11 +900,14 @@ async function prepareManualPayment(){
 function startManualPayment(){
   if(!preparedPayment){prepareManualPayment().catch(()=>{});return;}
   const link=preparedPayment.created?.upi_uri;
-  if(link)location.href=link;
+  if(link){location.href=link;return;}
+  const mobile=preparedPayment.created?.payee_phone;
+  if(mobile)navigator.clipboard?.writeText(mobile).then(()=>showToast('UPI number copied. Open your UPI app, verify recipient and pay the exact amount.')).catch(()=>showToast('Pay the exact amount to UPI number '+mobile));
 }
 document.getElementById('copyOrderUpi')?.addEventListener('click',async()=>{
-  if(!preparedPayment?.created?.upi_vpa)return;
-  try{await navigator.clipboard.writeText(preparedPayment.created.upi_vpa);showToast('UPI ID copied. Pay the exact amount shown.');}
+  if(!preparedPayment?.created)return;
+  const details=preparedPayment.created;
+  try{await navigator.clipboard.writeText(details.upi_vpa||Number(details.upi_amount).toFixed(2));showToast(details.upi_vpa?'UPI ID copied. Pay the exact amount shown.':'Exact amount copied. Verify recipient before paying.');}
   catch{showToast('Please copy the receiving UPI ID shown above.');}
 });
 document.getElementById('orderClaimPaid')?.addEventListener('click',async()=>{
