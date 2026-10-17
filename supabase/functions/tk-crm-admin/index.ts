@@ -18,6 +18,22 @@ Deno.serve(async(req:Request)=>{
  const u=new URL(req.url),action=u.searchParams.get("action")||"dashboard";
  const contactId=u.searchParams.get("contact_id");
  if(req.method==="GET"){
+  if(action==="upi_pending"){
+    const [orders,samples]=await Promise.all([
+      db.from("tk_orders").select("id,order_ref,customer_name,customer_mobile,total_amount,manual_upi_amount,payment_submitted_at,created_at,payment_status")
+        .eq("payment_provider","manual_upi").eq("payment_environment","live").eq("payment_status","pending").order("created_at",{ascending:false}).limit(150),
+      db.from("tk_sample_requests").select("id,sample_ref,contact_id,sample_price,manual_upi_amount,payment_submitted_at,created_at,payment_status,product_id,locality")
+        .eq("payment_provider","manual_upi").eq("payment_environment","live").eq("payment_status","pending").order("created_at",{ascending:false}).limit(150)
+    ]);
+    if(orders.error||samples.error)return respond({error:"payment_queue_unavailable"},503);
+    const rows=[
+      ...(orders.data||[]).map(o=>({kind:"order",id:o.id,ref:o.order_ref,base_amount:Number(o.total_amount),payable_amount:Number(o.manual_upi_amount),customer:o.customer_name,mobile:o.customer_mobile,
+       reported_at:o.payment_submitted_at,created_at:o.created_at,detail:"Product order"})),
+      ...(samples.data||[]).map(s=>({kind:"sample",id:s.id,ref:s.sample_ref,base_amount:Number(s.sample_price),payable_amount:Number(s.manual_upi_amount),customer:null,mobile:null,
+       reported_at:s.payment_submitted_at,created_at:s.created_at,detail:(s.product_id||"Sample")+" · "+(s.locality||"")}))
+    ].sort((a,b)=>(Boolean(b.reported_at)?1:0)-(Boolean(a.reported_at)?1:0)||String(b.created_at).localeCompare(String(a.created_at)));
+    return respond({rows,reported_count:rows.filter(x=>x.reported_at).length,pending_count:rows.length,note:"Check a real bank credit at the exact amount and verify recipient/sender/date; a customer claim or exact amount alone is not proof."});
+  }
   if(action==="dashboard"){
    const [contacts,samples,gifting,tasks,orders]=await Promise.all([
     db.from("tk_contacts").select("id",{count:"exact",head:true}),
@@ -70,6 +86,19 @@ Deno.serve(async(req:Request)=>{
    return error?respond({error:"query_failed"},500):respond({rows:data,mode:["orders","tasting"].includes(action)?"live_only":null});
   }
  }
+ if(req.method==="POST"&&action==="upi_review"){
+  let b:any;try{b=await req.json()}catch{return respond({error:"invalid_json"},400)}
+  if(!["sample","order"].includes(b.kind)||typeof b.id!=="string"||!/^[0-9a-f-]{36}$/i.test(b.id)||
+      !["verified_paid","rejected"].includes(b.decision)||!Number.isSafeInteger(b.amount_paise)||
+      typeof b.bank_evidence!=="string"||b.bank_evidence.trim().length<8||b.bank_evidence.length>500)
+    return respond({error:"invalid_bank_review"},400);
+  const {data,error}=await db.rpc("tk_review_upi_payment",{
+   p_kind:b.kind,p_reference_id:b.id,p_amount_paise:b.amount_paise,
+   p_decision:b.decision,p_bank_evidence:b.bank_evidence.trim(),p_admin_id:user.id
+  });
+  if(error){console.error("upi_review_rejected",error.code);return respond({error:"bank_review_rejected",message:"Could not reconcile this payment. Recheck amount, record status and bank evidence."},409)}
+  return respond({ok:true,reference:data,decision:b.decision});
+ }
  // Founder-only customer support draft. Never callable by a public shopper or unauthenticated bot.
  if(req.method==="POST"&&["support_draft","support_handoff"].includes(action)){
   let b:any;try{b=await req.json()}catch{return respond({error:"invalid_json"},400)}
@@ -105,7 +134,7 @@ Deno.serve(async(req:Request)=>{
    }else{reply="I cannot confidently identify the order from this customer record. Please verify the order reference; our team can check it.";handoff=true}
   } else if(needsSample){
    topic="tasting";const sample=(samples.data||[])[0];
-   reply=sample?"Tasting request "+(sample.sample_ref||"")+" status: "+sample.status+". Payment: "+sample.payment_status+".":"Tasty Kitchen offers a ₹20 prepaid tasting option in Ahmedabad and nearby serviceable areas, subject to availability. I cannot see an active paid tasting on this customer record.";
+   reply=sample?"Tasting request "+(sample.sample_ref||"")+" status: "+sample.status+". Payment: "+sample.payment_status+".":"Tasty Kitchen offers a ₹50 prepaid tasting option in Ahmedabad and nearby serviceable areas, subject to availability. I cannot see an active paid tasting on this customer record.";
   } else if(needsGift){topic="gifting";reply="We offer Diwali gifting enquiries for sweets. Share the required quantity and destination so our team can discuss availability."}
   else if(/price|rate|cost|₹|कीमत|ભાવ/.test(q)){topic="pricing";reply="Current 250 g / 500 g prices: Makhana Mewa Bites ₹400 / ₹800, Coconut Mewa Ladoo ₹175 / ₹350, Jalebi with Rabdi ₹200 / ₹400. Please confirm availability before promising fulfilment."}
   else if(/deliver|shipping|all india|india|कहाँ|ડિલિવરી/.test(q)){topic="delivery";reply="Packaged sweets may be delivered across India, subject to serviceability. Jalebi with Rabdi is limited to Ahmedabad. Please confirm your pincode for exact availability."}
