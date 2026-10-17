@@ -22,7 +22,7 @@ function paymentInstructions(orderRef:string,total:number){
   const payee=clean(Deno.env.get("TK_MANUAL_UPI_PAYEE")||"Tasty Kitchen",80);
   const validVpa=/^[a-zA-Z0-9._-]{2,}@[a-zA-Z0-9.-]{2,}$/.test(vpa);
   const params=new URLSearchParams();
-  if(validVpa){params.set("pa",vpa);params.set("pn",payee);params.set("am",total.toFixed(2));params.set("cu","INR");params.set("tn","Tasty Kitchen "+orderRef);}
+  if(validVpa){params.set("pa",vpa);params.set("pn",payee);params.set("am",total.toFixed(2));params.set("cu","INR");params.set("tr",orderRef);params.set("tn","Tasty Kitchen "+orderRef);}
   return {upi_uri:validVpa?"upi://pay?"+params.toString():null,upi_vpa:validVpa?vpa:null,payee_name:payee,payee_phone:PHONE};
 }
 Deno.serve(async req=>{
@@ -54,6 +54,7 @@ Deno.serve(async req=>{
     return result({ok:true,order_ref:ref,status:"awaiting_bank_verification",message:"Your payment report is saved. We will confirm your order after checking the bank credit."},200,origin);
   }
   if(body.action!=="create")return result({error:"invalid_action"},400,origin);
+  if(!paymentInstructions("TK-PREVIEW",50).upi_vpa)return result({error:"upi_not_configured",message:"UPI checkout is being activated. Please contact Tasty Kitchen on WhatsApp."},503,origin);
   const name=clean(body.name,100),mobile=digits(body.mobile),address=clean(body.address,600);
   const pin=clean(body.pincode,10),deliveryDate=clean(body.delivery_date,20),clientId=clean(body.client_checkout_id,120);
   if(name.length<2||!/^[6-9]\d{9}$/.test(mobile)||address.length<8||!/^\d{6}$/.test(pin)||!/^\d{4}-\d{2}-\d{2}$/.test(deliveryDate)||!isCheckoutId(clientId))
@@ -74,8 +75,10 @@ Deno.serve(async req=>{
   if(existsErr)return result({error:"lookup_failed"},500,origin);
   if(existing){
     if(existing.payment_provider!=="manual_upi"||Number(existing.total_amount)!==total)return result({error:"checkout_conflict"},409,origin);
-    return result({ok:true,order_ref:existing.order_ref,total_amount:total,payment_status:existing.payment_status,
-      ...paymentInstructions(existing.order_ref,total)},200,origin);
+    const {data:a}=await db.from("tk_upi_reservations").select("amount_paise").eq("client_checkout_id",clientId).maybeSingle();
+    if(!a)return result({error:"payment_reservation_missing"},503,origin);
+    return result({ok:true,order_ref:existing.order_ref,total_amount:total,upi_amount:Number(a.amount_paise)/100,payment_status:existing.payment_status,
+      ...paymentInstructions(existing.order_ref,Number(a.amount_paise)/100)},200,origin);
   }
   let {data:contact,error:contactErr}=await db.from("tk_contacts").select("id").eq("normalized_mobile",mobile).maybeSingle();
   if(contactErr)return result({error:"customer_lookup_failed"},500,origin);
@@ -88,16 +91,21 @@ Deno.serve(async req=>{
     const {data:c,error:e}=await db.from("tk_contacts").insert({name,mobile,normalized_mobile:mobile,address,pincode,lifecycle_stage:"lead",source:"website",last_contact_at:now}).select("id").single();
     if(e||!c)return result({error:"customer_create_failed"},500,origin);contactId=c.id;
   }
+  const {data:allocation,error:allocError}=await db.rpc("tk_allocate_upi_amount",{p_kind:"order",p_checkout_id:clientId,p_base_paise:total*100});
+  const reserved=allocation?.[0];
+  if(allocError||!reserved)return result({error:"payment_amount_unavailable",message:"Unique UPI payment amounts are full. Please contact Tasty Kitchen."},503,origin);
+  const payable=Number(reserved.amount_paise)/100;
   const attr=body.attribution||{};
   const {data:order,error:orderErr}=await db.from("tk_orders").insert({
     contact_id:contactId,customer_name:name,customer_mobile:mobile,delivery_address:address,delivery_pincode:pin,
     delivery_scope:scope,delivery_date:deliveryDate,delivery_charge:0,total_amount:total,
     payment_status:"pending",order_status:"created",client_checkout_id:clientId,source:"website",payment_provider:"manual_upi",
-    payment_environment:"live",payment_method:"upi",
+    payment_environment:"live",payment_method:"upi",manual_upi_amount:payable,
     utm_source:clean(attr.utm_source,150)||null,utm_medium:clean(attr.utm_medium,150)||null,
     utm_campaign:clean(attr.utm_campaign,150)||null,utm_content:clean(attr.utm_content,150)||null
   }).select("id,order_ref,total_amount").single();
   if(orderErr||!order)return result({error:"order_create_failed",message:"We could not create your order. Please try again."},500,origin);
+  await db.from("tk_upi_reservations").update({reference_id:order.id,reference_code:order.order_ref}).eq("id",reserved.reservation_id);
   const {error:linesErr}=await db.from("tk_order_items").insert(items.map(it=>({...it,order_id:order.id})));
   if(linesErr){
     await db.from("tk_orders").update({failure_reason:"order_items_create_failed",updated_at:now}).eq("id",order.id);
@@ -105,5 +113,5 @@ Deno.serve(async req=>{
   }
   await db.from("tk_interactions").insert({contact_id:contactId,channel:"website",direction:"inbound",event_type:"manual_upi_order_created",
     summary:"Customer created an unpaid manual UPI order.",metadata:{order_ref:order.order_ref,total_amount:total}});
-  return result({ok:true,order_ref:order.order_ref,total_amount:total,payment_status:"pending",...paymentInstructions(order.order_ref,total)},201,origin);
+  return result({ok:true,order_ref:order.order_ref,total_amount:total,upi_amount:payable,adjustment_amount:Number((payable-total).toFixed(2)),payment_status:"pending",...paymentInstructions(order.order_ref,payable)},201,origin);
 });
