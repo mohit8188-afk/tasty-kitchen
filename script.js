@@ -678,6 +678,7 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     document.getElementById('samplePayAmount').textContent='₹'+Number(data.upi_amount).toFixed(2);
     document.getElementById('samplePayRef').textContent=data.sample_ref;
     document.getElementById('samplePayVpa').textContent=TK_RECEIVING_UPI_VPA;
+    document.getElementById('sampleDirectAmount').textContent='₹'+Number(data.upi_amount).toFixed(2);
     document.getElementById('sampleOpenUpi').textContent='Pay ₹'+Number(data.upi_amount).toFixed(2)+' with UPI ↗';
     document.getElementById('sampleCopyUpi').textContent='Copy UPI ID';
     document.getElementById('sampleClaimPaid').hidden=true;
@@ -709,6 +710,12 @@ document.getElementById('sampleCopyUpi')?.addEventListener('click',async()=>{
   if(!activeSampleUpi)return;
   try{await navigator.clipboard.writeText(TK_RECEIVING_UPI_VPA);showToast('UPI ID copied. Confirm the payee and enter the exact amount.');}
   catch{showToast('UPI ID: '+TK_RECEIVING_UPI_VPA);}
+});
+document.getElementById('sampleCopyAmount')?.addEventListener('click',async()=>{
+  if(!activeSampleUpi?.upi_amount)return;
+  const amount=Number(activeSampleUpi.upi_amount).toFixed(2);
+  try{await navigator.clipboard.writeText(amount);showToast('Exact amount ₹'+amount+' copied. Pay only this amount.');}
+  catch{showToast('Exact amount to pay: ₹'+amount);}
 });
 document.getElementById('sampleClaimPaid')?.addEventListener('click',async()=>{
   if(!activeSampleUpi)return;
@@ -932,6 +939,7 @@ async function prepareManualPayment(){
     document.getElementById('orderClaimPaid').hidden=true;
     document.getElementById('orderUpiHelp').hidden=false;
     document.getElementById('orderPayVpa').textContent=TK_RECEIVING_UPI_VPA;
+    document.getElementById('orderDirectAmount').textContent='₹'+Number(data.upi_amount).toFixed(2);
     return preparedPayment;
   })().catch(err=>{status.innerHTML='<strong>Unable to prepare payment</strong><span>'+escapeHtml(err.message)+'</span>';btn.disabled=false;btn.textContent='Try again';throw err;})
     .finally(()=>{preparePaymentPromise=null;});
@@ -948,6 +956,12 @@ document.getElementById('copyOrderUpi')?.addEventListener('click',async()=>{
   if(!preparedPayment?.created)return;
   try{await navigator.clipboard.writeText(TK_RECEIVING_UPI_VPA);showToast('UPI ID copied. Confirm the payee and enter the exact amount.');}
   catch{showToast('UPI ID: '+TK_RECEIVING_UPI_VPA);}
+});
+document.getElementById('copyOrderAmount')?.addEventListener('click',async()=>{
+  if(!preparedPayment?.created?.upi_amount)return;
+  const amount=Number(preparedPayment.created.upi_amount).toFixed(2);
+  try{await navigator.clipboard.writeText(amount);showToast('Exact amount ₹'+amount+' copied. Pay only this amount.');}
+  catch{showToast('Exact amount to pay: ₹'+amount);}
 });
 document.getElementById('orderClaimPaid')?.addEventListener('click',async()=>{
   if(!preparedPayment)return;
@@ -1023,6 +1037,7 @@ try{
     document.getElementById('samplePayRef').textContent=savedSample.sample_ref;
     document.getElementById('samplePayAmount').textContent='₹'+Number(savedSample.upi_amount).toFixed(2);
     document.getElementById('samplePayVpa').textContent=TK_RECEIVING_UPI_VPA;
+    document.getElementById('sampleDirectAmount').textContent='₹'+Number(savedSample.upi_amount).toFixed(2);
     document.getElementById('sampleOpenUpi').textContent='Pay ₹'+Number(savedSample.upi_amount).toFixed(2)+' with UPI ↗';
     document.getElementById('sampleCopyUpi').textContent='Copy UPI ID';
     document.getElementById('sampleClaimPaid').hidden=!savedSample.payment_attempted;
@@ -1038,6 +1053,7 @@ try{
     document.getElementById('orderClaimPaid').hidden=!savedOrder.payment_attempted;
     document.getElementById('orderUpiHelp').hidden=false;
     document.getElementById('orderPayVpa').textContent=TK_RECEIVING_UPI_VPA;
+    document.getElementById('orderDirectAmount').textContent='₹'+Number(data.upi_amount).toFixed(2);
     setLayer(checkoutLayer,true);setLayer(paymentLayer,true);
   }
 }catch{sessionStorage.removeItem('tkManualOrderCheckout');sessionStorage.removeItem('tkManualSampleCheckout');}
