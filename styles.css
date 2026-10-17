@@ -1624,3 +1624,13 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offse
   overflow-wrap:anywhere;
 }
 .sample-payment-error[hidden] {display:none!important;}
+
+/* Temporary manual payment path when some UPI apps reject browser-initiated personal VPA links. */
+.upi-direct-actions {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:9px;
+  margin:12px 0;
+}
+.upi-direct-actions button {width:100%;min-height:46px;}
+.upi-help-panel strong {overflow-wrap:anywhere;}
