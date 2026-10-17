@@ -45,7 +45,7 @@ Deno.serve(async req=>{
    const cityKey=textnorm(city),addrKey=textnorm(address);
    const {data:dups,error:dupeErr}=await db.from("tk_sample_requests").select("id")
      .eq("normalized_city",cityKey).eq("normalized_address",addrKey)
-     .in("payment_status",["pending","paid"]).neq("id",s.id).limit(1);
+     .eq("payment_status","paid").eq("payment_environment","live").neq("id",s.id).limit(1);
    if(dupeErr)return answer({error:"address_check_failed"},503,origin);
    if(dups?.length)return answer({error:"duplicate_address",message:"A tasting request already exists for this address. Contact Tasty Kitchen."},409,origin);
    const {error:up}=await db.from("tk_sample_requests").update({city,normalized_city:cityKey,address,normalized_address:addrKey,address_status:"complete",address_completed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",s.id);
@@ -80,7 +80,7 @@ Deno.serve(async req=>{
  if(cap&&!cap.is_open)return answer({error:"date_closed",message:"This tasting date is closed."},409,origin);
  const {count:occupied,error:occErr}=await db.from("tk_sample_requests")
    .select("id",{count:"exact",head:true}).eq("preferred_date",date)
-   .in("payment_status",["pending","paid"]).in("status",["payment_pending","requested","confirmed","scheduled"]);
+   .eq("payment_status","paid").eq("payment_environment","live").in("status",["requested","confirmed","scheduled"]);
  if(occErr)return answer({error:"capacity_unavailable"},503,origin);
  if((occupied||0)>=Number(cap?.total_capacity||policy.daily_capacity||100))return answer({error:"date_full",message:"All tasting slots are currently reserved for this date."},409,origin);
  let {data:contact,error:contactErr}=await db.from("tk_contacts").select("id").eq("normalized_mobile",mobile).maybeSingle();
@@ -88,11 +88,11 @@ Deno.serve(async req=>{
  let contactId=contact?.id;
  if(contactId){
    const {data:dups,error:dupeErr}=await db.from("tk_sample_requests").select("id,status,payment_status,sample_ref,created_at")
-     .eq("contact_id",contactId).in("payment_status",["paid","pending"])
+     .eq("contact_id",contactId).eq("payment_status","paid").eq("payment_environment","live")
      .order("created_at",{ascending:false}).limit(20);
    if(dupeErr)return answer({error:"sample_check_failed"},503,origin);
    const active=(dups||[]).find(x=>x.status!=="cancelled"&&x.status!=="rejected");
-   if(active)return answer({error:"active_sample_exists",sample_ref:active.sample_ref,message:"A tasting request is already active for this mobile number."},409,origin);
+   if(active)return answer({error:"sample_already_paid",message:"A paid tasting has already been booked for this mobile number."},409,origin);
    const now=new Date().toISOString();
    const {error:e}=await db.from("tk_contacts").update({name,mobile,locality,last_seen_at:now,last_contact_at:now,source:"website"}).eq("id",contactId);
    if(e)return answer({error:"contact_update_failed"},500,origin);
