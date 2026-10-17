@@ -17,6 +17,7 @@ function upi(ref:string,amount:number){
 Deno.serve(async req=>{
  const origin=req.headers.get("origin");
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors(origin)});
+ try{
  if(req.method!=="POST")return answer({error:"method_not_allowed"},405,origin);
  if(origin&&!ORIGINS.has(origin))return answer({error:"origin_not_allowed"},403,origin);
  let b:Record<string,any>;try{b=await req.json()}catch{return answer({error:"invalid_json"},400,origin);}
@@ -63,6 +64,8 @@ Deno.serve(async req=>{
  if(existingErr)return answer({error:"sample_lookup_failed"},500,origin);
  if(existing){
    if(existing.payment_provider!=="manual_upi")return answer({error:"checkout_conflict"},409,origin);
+   if(existing.payment_status==="paid")return answer({error:"sample_already_paid",message:"Your sample has already been paid for. Please wait for confirmation."},409,origin);
+   if(existing.payment_status!=="pending")return answer({error:"sample_not_payable",message:"This sample request cannot accept another payment. Please start a new request."},409,origin);
    const {data:a}=await db.from("tk_upi_reservations").select("amount_paise").eq("client_checkout_id",checkout).maybeSingle();
    if(!a)return answer({error:"payment_reservation_missing"},503,origin);
    const amount=Number(a.amount_paise)/100;
@@ -121,4 +124,8 @@ Deno.serve(async req=>{
  metadata:{sample_ref:s.sample_ref,base:50,upi_amount:amount}});
  return answer({ok:true,sample_ref:s.sample_ref,sample_base_price:50,amount_paise:reserved.amount_paise,upi_amount:amount,adjustment_amount:Number((amount-50).toFixed(2)),
  payment_status:"pending",...upi(s.sample_ref,amount)},201,origin);
+ }catch(err){
+   console.error("tk-manual-sample-unhandled",err instanceof Error?err.name:"unknown");
+   return answer({error:"checkout_service_error",message:"Sample payment cannot be prepared right now. Please retry; do not send another transfer if already paid."},503,origin);
+ }
 });
