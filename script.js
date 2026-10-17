@@ -645,12 +645,16 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
   e.preventDefault();
   if(!e.currentTarget.reportValidity())return;
   const form=e.currentTarget,submit=form.querySelector('button[type="submit"]');
+  if(submit.disabled)return;
+  const inlineError=document.getElementById('samplePaymentError');
+  inlineError.hidden=true;
+  inlineError.textContent='';
   const qs=new URLSearchParams(location.search);
   const payload={
     action:'create',
     name:document.getElementById('sampleName').value.trim(),
     mobile:document.getElementById('samplePhone').value.trim(),
-    locality:document.getElementById('sampleArea').value.trim().replace(/\\s+/g,' '),
+    locality:document.getElementById('sampleArea').value.trim().replace(/\s+/g,' '),
     preferred_date:document.getElementById('sampleDate').value,
     product_id:document.getElementById('sampleSweet').value,
     client_checkout_id:sessionStorage.getItem('tkManualSampleCheckoutId')||(crypto?.randomUUID?.()||('tks-'+Date.now()+'-'+Math.random().toString(36).slice(2))),
@@ -658,11 +662,16 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     utm_campaign:qs.get('utm_campaign'),utm_content:qs.get('utm_content')
   };
   sessionStorage.setItem('tkManualSampleCheckoutId',payload.client_checkout_id);
-  submit.disabled=true;submit.textContent='Reserving unique payment amount…';
+  submit.disabled=true;submit.textContent='Preparing your UPI payment…';
+  const requestController=new AbortController();
+  const requestTimeout=setTimeout(()=>requestController.abort(),18000);
   try{
-    const res=await fetch(TK_MANUAL_SAMPLE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const res=await fetch(TK_MANUAL_SAMPLE_URL,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),
+      signal:requestController.signal
+    });
     const data=await res.json().catch(()=>({}));
-    if(!res.ok||!data.ok)throw Error(data.message||'Could not prepare the sample. Please try again.');
+    if(!res.ok||!data.ok)throw Error(data.message||'We could not prepare the sample payment. Please retry.');
     if(!tkUpiPaymentIntent(data,'sample'))throw Error('UPI payment details could not be prepared.');
     activeSampleUpi={...data,client_checkout_id:payload.client_checkout_id};
     sessionStorage.setItem('tkManualSampleCheckout',JSON.stringify(activeSampleUpi));
@@ -675,8 +684,18 @@ document.getElementById('sampleForm').addEventListener('submit',async e=>{
     document.getElementById('sampleManualPayment').hidden=false;
     form.hidden=true;
     document.getElementById('sampleManualPayment').scrollIntoView({block:'start',behavior:reducedMotion.matches?'auto':'smooth'});
-  }catch(err){showToast(err.message||'Could not prepare the payment.');}
-  finally{submit.disabled=false;submit.textContent='Continue to ₹50 sample payment';}
+  }catch(err){
+    const msg=err?.name==='AbortError'
+      ? 'The payment service did not respond within 18 seconds. Please retry; do not send a second payment if you already paid.'
+      : (err instanceof TypeError?'Unable to connect to our payment service. Check your connection and retry.':(err?.message||'Could not prepare the payment. Please retry.'));
+    inlineError.textContent=msg;
+    inlineError.hidden=false;
+    showToast(msg);
+  }finally{
+    clearTimeout(requestTimeout);
+    submit.disabled=false;
+    submit.textContent='Try UPI payment again';
+  }
 });
 document.getElementById('sampleOpenUpi')?.addEventListener('click',()=>{
   if(!activeSampleUpi)return;

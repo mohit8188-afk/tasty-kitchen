@@ -112,7 +112,7 @@ Deno.serve(async req=>{
   contact_id:contactId,product_id:product,preferred_date:date,locality,normalized_locality:textnorm(locality),
   status:"payment_pending",address_status:"pending",sample_price:50,manual_upi_amount:amount,
   payment_status:"pending",payment_provider:"manual_upi",payment_environment:"live",payment_method:"upi",
-  client_checkout_id:checkout,request_key:mobile+"|"+textnorm(locality),source:"website",
+  client_checkout_id:checkout,request_key:"manual-upi|"+checkout,source:"website",
   utm_source:clean(b.utm_source,150)||null,utm_medium:clean(b.utm_medium,150)||null,
   utm_campaign:clean(b.utm_campaign,150)||null,utm_content:clean(b.utm_content,150)||null
  }).select("id,sample_ref").single();

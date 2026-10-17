@@ -91,7 +91,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="assets/makhana-gift-open-hires.webp" fetchpriority="high" media="(min-width: 1px)">
-  <link rel="stylesheet" href="styles.css?v=20261017-upi2" />
+  <link rel="stylesheet" href="styles.css?v=20261017-sampleretry1" />
 </head>
 <body>
   <header class="topbar">
@@ -385,13 +385,14 @@
           <label>Preferred sample date<input id="sampleDate" type="date" required></label>
         </div>
         <div class="sample-controls">
-          <span>1 active request per mobile</span>
+          <span>One verified paid tasting per mobile</span>
           <span>Daily slot checked</span>
           <span>Address collected after request</span>
         </div>
         <div class="sample-note"><strong>₹50 tasting</strong><span>The exact payable amount, including a small bank-matching adjustment (up to ₹1.99), appears next.</span></div>
         <button class="primary-btn" type="submit">Continue to UPI payment</button>
-        <small class="preview-warning">Your request is saved before payment, but the sample is confirmed only after we verify the bank credit and delivery route.</small>
+        <p id="samplePaymentError" class="sample-payment-error" role="alert" aria-live="assertive" hidden></p>
+        <small class="preview-warning">We confirm your tasting only after checking the bank credit and delivery route. No money is collected by this form.</small>
       </form>
 
 
@@ -519,6 +520,6 @@
     <p>Homemade festive sweets • Free delivery on full orders • ₹50 tasting trials in Ahmedabad + nearby serviceable areas.</p>
   </footer>
 
-  <script src="script.js?v=20261017-upi2"></script>
+  <script src="script.js?v=20261017-sampleretry1"></script>
 </body>
 </html>
