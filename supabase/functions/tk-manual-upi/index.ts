@@ -18,11 +18,11 @@ const clean=(v:unknown,max=300)=>String(v??"").trim().slice(0,max);
 const digits=(v:unknown)=>String(v??"").replace(/\D/g,"").slice(-10);
 const isCheckoutId=(v:string)=>/^[a-zA-Z0-9-]{8,120}$/.test(v);
 function paymentInstructions(orderRef:string,total:number){
-  const vpa=clean(Deno.env.get("TK_MANUAL_UPI_VPA"),100);
+  const vpa="mohit8188-1@okicici"; // Public receiving UPI VPA supplied by the founder on 17 Oct 2026.
   const payee=clean(Deno.env.get("TK_MANUAL_UPI_PAYEE")||"Tasty Kitchen",80);
   const validVpa=/^[a-zA-Z0-9._-]{2,}@[a-zA-Z0-9.-]{2,}$/.test(vpa);
   const params=new URLSearchParams();
-  if(validVpa){params.set("pa",vpa);params.set("pn",payee);params.set("am",total.toFixed(2));params.set("cu","INR");params.set("tr",orderRef);params.set("tn","Tasty Kitchen "+orderRef);}
+  if(validVpa){params.set("pa",vpa);params.set("pn",payee);params.set("am",total.toFixed(2));params.set("cu","INR");params.set("tn","Tasty Kitchen "+orderRef);}
   return {upi_uri:validVpa?"upi://pay?"+params.toString():null,upi_vpa:validVpa?vpa:null,payee_name:payee,payee_phone:PHONE};
 }
 Deno.serve(async req=>{
