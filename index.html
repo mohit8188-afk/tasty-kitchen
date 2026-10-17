@@ -91,7 +91,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="assets/makhana-gift-open-hires.webp" fetchpriority="high" media="(min-width: 1px)">
-  <link rel="stylesheet" href="styles.css?v=20261017-sampleretry1" />
+  <link rel="stylesheet" href="styles.css?v=20261017-upifallback1" />
 </head>
 <body>
   <header class="topbar">
@@ -405,10 +405,15 @@
         <button type="button" id="sampleClaimPaid" class="upi-finished-btn" hidden>I've completed the payment</button>
         <p id="sampleClaimStatus" class="upi-payment-status" role="status" aria-live="polite">After payment, return here. We'll verify the bank credit and confirm your request. No screenshot or transaction ID needed.</p>
         <details class="upi-help-panel" id="sampleUpiHelp">
-          <summary>UPI app didn't open?</summary>
-          <p>Try from your phone browser. If your app cannot open automatically, you can enter the UPI ID and exact amount manually as a fallback.</p>
+          <summary>UPI payment declined or app didn't open? Pay directly</summary>
+          <p>Open GPay, PhonePe or Paytm directly → Send to UPI ID → enter the exact amount below. This bypasses the website payment link. Check the receiving name is <strong>MOHIT KUMAR SHARMA</strong>.</p>
           <p>UPI ID: <strong id="samplePayVpa">—</strong></p>
-          <button type="button" id="sampleCopyUpi" class="secondary-btn">Copy UPI ID</button>
+          <p>Exact amount: <strong id="sampleDirectAmount">₹50.00</strong></p>
+          <div class="upi-direct-actions">
+            <button type="button" id="sampleCopyUpi" class="secondary-btn">Copy UPI ID</button>
+            <button type="button" id="sampleCopyAmount" class="secondary-btn">Copy exact amount</button>
+          </div>
+          <p>After a successful transfer, return here and choose “I've completed the payment.” Do not pay twice.</p>
         </details>
         <span id="samplePayRef" hidden></span>
       </section>
@@ -495,10 +500,15 @@
       </button>
       <button class="upi-finished-btn" id="orderClaimPaid" type="button" hidden>I've completed the payment</button>
       <details class="upi-help-panel" id="orderUpiHelp" hidden>
-        <summary>UPI app didn't open?</summary>
-        <p>Try from your phone browser. If the payment app cannot open, you can use this fallback.</p>
+        <summary>Payment declined or UPI app didn't open? Pay directly</summary>
+        <p>Open GPay, PhonePe or Paytm directly → Send to UPI ID → enter the exact amount below. Check the recipient is <strong>MOHIT KUMAR SHARMA</strong>.</p>
         <p>UPI ID: <strong id="orderPayVpa">—</strong></p>
-        <button class="secondary-btn" id="copyOrderUpi" type="button">Copy UPI ID</button>
+        <p>Exact amount: <strong id="orderDirectAmount">—</strong></p>
+        <div class="upi-direct-actions">
+          <button class="secondary-btn" id="copyOrderUpi" type="button">Copy UPI ID</button>
+          <button class="secondary-btn" id="copyOrderAmount" type="button">Copy exact amount</button>
+        </div>
+        <p>After successful transfer, return and select “I've completed the payment.” Do not pay twice.</p>
       </details>
       <button class="payment-back-btn" type="button" data-close-payment>← Back to checkout</button>
       <p class="payment-fineprint">After paying, return here and tap “I’ve completed the payment.” We’ll verify the bank credit. No screenshot or transaction ID needed.</p>
@@ -520,6 +530,6 @@
     <p>Homemade festive sweets • Free delivery on full orders • ₹50 tasting trials in Ahmedabad + nearby serviceable areas.</p>
   </footer>
 
-  <script src="script.js?v=20261017-sampleretry1"></script>
+  <script src="script.js?v=20261017-upifallback1"></script>
 </body>
 </html>
