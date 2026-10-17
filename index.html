@@ -389,23 +389,27 @@
           <span>Daily slot checked</span>
           <span>Address collected after request</span>
         </div>
-        <div class="sample-note"><strong>₹50 secure payment</strong><span>Pay using a UPI app with a unique amount (₹50 plus up to ₹1.99 payment-matching adjustment). We verify the bank credit before confirming the request. After payment, you can add the full delivery address immediately or before delivery confirmation.</span></div>
-        <button class="primary-btn" type="submit">Pay ₹50 & request tasting</button>
+        <div class="sample-note"><strong>₹50 tasting</strong><span>The exact payable amount, including a small bank-matching adjustment (up to ₹1.99), appears next.</span></div>
+        <button class="primary-btn" type="submit">Continue to UPI payment</button>
         <small class="preview-warning">Your request is saved before payment, but the sample is confirmed only after we verify the bank credit and delivery route.</small>
       </form>
 
 
-      <section class="sample-success" id="sampleManualPayment" hidden aria-live="polite">
-        <p class="kicker">UPI payment • no UTR or screenshot needed</p>
-        <h3>Pay <span id="samplePayAmount">₹50.00</span></h3>
-        <p>Sample ₹50 + a small unique verification adjustment, shown in the amount above.</p>
-        <div class="sample-reference"><span>Sample ID</span><strong id="samplePayRef">—</strong></div>
-        <p>Check the recipient name inside your UPI app before approving payment.</p>
-        <div class="sample-reference"><span>Receiving UPI ID</span><strong id="samplePayVpa">—</strong></div>
-        <button type="button" id="sampleOpenUpi" class="primary-btn">Pay using UPI app</button>
-        <button type="button" id="sampleCopyUpi" class="secondary-btn">Copy UPI ID</button>
-        <button type="button" id="sampleClaimPaid" class="secondary-btn">I've paid — request verification</button>
-        <p id="sampleClaimStatus" role="status" aria-live="polite">A screenshot or transaction ID is not required. Your tasting request is not confirmed until the bank credit is checked.</p>
+      <section class="sample-success upi-customer-checkout" id="sampleManualPayment" hidden aria-live="polite">
+        <p class="kicker">QUICK UPI PAYMENT</p>
+        <h3 class="upi-pay-heading">Pay <span id="samplePayAmount">₹50.00</span></h3>
+        <p class="upi-payment-intro">Choose an installed UPI app. Your exact payment amount and recipient will be filled in automatically.</p>
+        <p class="upi-payment-note">Includes a small bank-matching adjustment. Confirm the payee displayed by your UPI app before paying.</p>
+        <button type="button" id="sampleOpenUpi" class="primary-btn upi-main-pay-btn">Pay securely with UPI <span aria-hidden="true">↗</span></button>
+        <button type="button" id="sampleClaimPaid" class="upi-finished-btn" hidden>I've completed the payment</button>
+        <p id="sampleClaimStatus" class="upi-payment-status" role="status" aria-live="polite">After payment, return here. We'll verify the bank credit and confirm your request. No screenshot or transaction ID needed.</p>
+        <details class="upi-help-panel" id="sampleUpiHelp">
+          <summary>UPI app didn't open?</summary>
+          <p>Try from your phone browser. If your app cannot open automatically, you can enter the UPI ID and exact amount manually as a fallback.</p>
+          <p>UPI ID: <strong id="samplePayVpa">—</strong></p>
+          <button type="button" id="sampleCopyUpi" class="secondary-btn">Copy UPI ID</button>
+        </details>
+        <span id="samplePayRef" hidden></span>
       </section>
       <section class="sample-success" id="sampleSuccess" hidden aria-live="polite">
         <span class="sample-success-mark" aria-hidden="true">✓</span>
@@ -473,14 +477,14 @@
       <button class="sheet-close" type="button" data-close-payment aria-label="Back to checkout">×</button>
       <div class="payment-head">
         <div>
-          <p class="kicker">Manual UPI checkout</p>
-          <h3 id="paymentTitle">One last review.<br>Then pay securely.</h3>
+          <p class="kicker">QUICK UPI PAYMENT</p>
+          <h3 id="paymentTitle">Pay with your UPI app</h3>
         </div>
         <span class="razorpay-badge">UPI</span>
       </div>
       <div id="paymentSummary" class="payment-order-card"></div>
       <div class="payment-trust-row" aria-label="Payment options and security">
-        <span>UPI</span><span>Unique amount</span><span>Bank verified</span>
+        <span>GPay · PhonePe · Paytm</span><span>Exact amount</span><span>Bank verified</span>
       </div>
       <div class="payment-status-card" id="paymentStatus" role="status" aria-live="polite">
         Preparing secure payment…
@@ -488,10 +492,15 @@
       <button class="primary-btn payment-pay-btn" id="payNowBtn" type="button" disabled>
         Preparing secure payment…
       </button>
-      <button class="secondary-btn" id="copyOrderUpi" type="button" hidden>Copy receiving UPI ID</button>
-      <button class="secondary-btn" id="orderClaimPaid" type="button" hidden>I've paid — request verification</button>
+      <button class="upi-finished-btn" id="orderClaimPaid" type="button" hidden>I've completed the payment</button>
+      <details class="upi-help-panel" id="orderUpiHelp" hidden>
+        <summary>UPI app didn't open?</summary>
+        <p>Try from your phone browser. If the payment app cannot open, you can use this fallback.</p>
+        <p>UPI ID: <strong id="orderPayVpa">—</strong></p>
+        <button class="secondary-btn" id="copyOrderUpi" type="button">Copy UPI ID</button>
+      </details>
       <button class="payment-back-btn" type="button" data-close-payment>← Back to checkout</button>
-      <p class="payment-fineprint">100% advance payment. Your order is saved but not confirmed until Tasty Kitchen checks the bank credit. No transaction ID or screenshot required.</p>
+      <p class="payment-fineprint">After paying, return here and tap “I’ve completed the payment.” We’ll verify the bank credit. No screenshot or transaction ID needed.</p>
     </div>
   </section>
 
