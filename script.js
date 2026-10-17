@@ -677,7 +677,7 @@ document.getElementById('sampleClaimPaid')?.addEventListener('click',async()=>{
   try{
     const res=await fetch(TK_MANUAL_SAMPLE_URL,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'claim',sample_ref:activeSampleUpi.sample_ref,client_checkout_id:activeSampleUpi.client_checkout_id})});
-    const data=await res.json().catch(()=>({});
+    const data=await res.json().catch(()=>({}));
     if(!res.ok||!data.ok)throw Error(data.message||'Please retry or contact us.');
     const success=document.getElementById('sampleSuccess');
     success.dataset.sampleRef=activeSampleUpi.sample_ref;
@@ -880,7 +880,7 @@ async function prepareManualPayment(){
   const payload={...pendingCheckoutPayload,client_checkout_id:id,items:buildServerCart(),attribution:checkoutAttribution(),action:'create'};
   preparePaymentPromise=(async()=>{
     const res=await fetch(TK_PAYMENT_CREATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const data=await res.json().catch(()=>({});
+    const data=await res.json().catch(()=>({}));
     if(!res.ok||!data.ok)throw Error(data.message||'UPI checkout is temporarily unavailable.');
     if(Number(data.total_amount)!==cartSubtotal())throw Error('Cart prices changed. Please reopen checkout.');
     if(!data.upi_uri&&!data.payee_phone)throw Error('No receiving UPI details are configured.');
@@ -918,7 +918,7 @@ document.getElementById('orderClaimPaid')?.addEventListener('click',async()=>{
     const d=preparedPayment;
     const r=await fetch(TK_PAYMENT_CREATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'claim',client_checkout_id:d.payload.client_checkout_id,order_ref:d.created.order_ref})});
-    const result=await r.json().catch(()=>({});
+    const result=await r.json().catch(()=>({}));
     if(!r.ok||!result.ok)throw Error(result.message||'Could not save your payment report.');
     status.innerHTML='<strong>Payment report received • '+escapeHtml(d.created.order_ref)+'</strong><span>Waiting for bank credit verification. This order is not confirmed yet. Please do not pay twice.</span>';
     btn.hidden=true;document.getElementById('payNowBtn').hidden=true;
@@ -927,7 +927,7 @@ document.getElementById('orderClaimPaid')?.addEventListener('click',async()=>{
     cart=[];saveCart();renderCart();
     trackEvent('order_payment_reported',{metadata:{order_ref:d.created.order_ref,total:d.created.upi_amount}});
   }catch(err){status.textContent=err.message||'Report failed. Please retry.';btn.disabled=false;}
-}
+});
 
 const paymentLayer=document.getElementById('paymentLayer');
 function closePayment(){if(paymentLayer.classList.contains('is-open')) setLayer(paymentLayer,false);}
