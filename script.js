@@ -626,12 +626,16 @@ document.querySelectorAll('[data-close-sample]').forEach(el=>el.addEventListener
 // browsers / phones with compatible installed UPI apps; never infer payment success from launch.
 const TK_RECEIVING_UPI_VPA='mohit8188-1@okicici';
 function tkUpiPaymentIntent(data,kind){
-  if(data?.upi_uri?.startsWith('upi://pay?'))return data.upi_uri;
-  // Restore old pending checkout drafts created before the payee UPI ID was provided.
-  if(data?.payee_phone!=='9834621628'||!Number.isFinite(Number(data?.upi_amount))||Number(data.upi_amount)<=0)return null;
+  // Rebuild for known temporary founder VPA so stored pending checkouts don't reuse
+  // stale links with a mismatched payee name or "+" encoded as literal note text.
+  if((data?.upi_vpa && data.upi_vpa!==TK_RECEIVING_UPI_VPA)||
+    (!data?.upi_vpa && data?.payee_phone!=='9834621628')||
+    !Number.isFinite(Number(data?.upi_amount))||Number(data.upi_amount)<=0)return null;
   const ref=kind==='sample'?data.sample_ref:data.order_ref;
   if(!/^TK[SO]-[A-Z0-9-]+$/i.test(String(ref||'')))return null;
-  return 'upi://pay?'+new URLSearchParams({pa:TK_RECEIVING_UPI_VPA,pn:'Tasty Kitchen',am:Number(data.upi_amount).toFixed(2),cu:'INR',tn:'Tasty Kitchen '+ref});
+  const params=new URLSearchParams({pa:TK_RECEIVING_UPI_VPA,pn:'MOHIT KUMAR SHARMA',
+    am:Number(data.upi_amount).toFixed(2),cu:'INR',tn:String(ref)});
+  return 'upi://pay?'+params.toString().replaceAll('+','%20');
 }
 function tkLaunchUpi(data,kind){
   const uri=tkUpiPaymentIntent(data,kind);
