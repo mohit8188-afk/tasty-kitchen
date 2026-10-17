@@ -53,7 +53,7 @@ Deno.serve(async req=>{
    return answer({ok:true,address_status:"complete",sample_ref:ref},200,origin);
  }
  if(b.action!=="create")return answer({error:"invalid_action"},400,origin);
- if(!upi("TKS-PREVIEW",50).upi_vpa)return answer({error:"upi_not_configured",message:"Our UPI payment destination is being activated. Please contact Tasty Kitchen on WhatsApp."},503,origin);
+ // A verified UPI VPA enables deep links; otherwise show the founder-approved receiving UPI number with exact amount.
  const name=clean(b.name,100),mobile=phone(b.mobile),locality=clean(b.locality,150),product=clean(b.product_id,80);
  const date=clean(b.preferred_date,20),checkout=clean(b.client_checkout_id,120);
  if(name.length<2||!/^[6-9]\d{9}$/.test(mobile)||locality.length<3||!PRODUCTS.has(product)||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!/^[A-Za-z0-9-]{8,120}$/.test(checkout))
