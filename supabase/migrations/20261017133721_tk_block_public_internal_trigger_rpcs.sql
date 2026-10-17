@@ -1,0 +1,10 @@
+revoke execute on function public.tk_ensure_sample_capacity_days() from public, anon, authenticated;
+grant execute on function public.tk_ensure_sample_capacity_days() to service_role;
+revoke execute on function public.tk_generate_order_ref() from public, anon, authenticated;
+grant execute on function public.tk_generate_order_ref() to service_role;
+revoke execute on function public.tk_generate_sample_ref() from public, anon, authenticated;
+grant execute on function public.tk_generate_sample_ref() to service_role;
+revoke execute on function public.tk_log_sample_status_change() from public, anon, authenticated;
+grant execute on function public.tk_log_sample_status_change() to service_role;
+revoke execute on function public.tk_set_sample_stage_timestamps() from public, anon, authenticated;
+grant execute on function public.tk_set_sample_stage_timestamps() to service_role;
