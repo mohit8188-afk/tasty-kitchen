@@ -26,10 +26,14 @@ Deno.serve(async(req:Request)=>{
         .eq("payment_provider","manual_upi").eq("payment_environment","live").eq("payment_status","pending").order("created_at",{ascending:false}).limit(150)
     ]);
     if(orders.error||samples.error)return respond({error:"payment_queue_unavailable"},503);
+    const ids=[...new Set((samples.data||[]).map(x=>x.contact_id).filter(Boolean))];
+    const contacts=ids.length?await db.from("tk_contacts").select("id,name,mobile").in("id",ids):{data:[],error:null};
+    if(contacts.error)return respond({error:"customer_lookup_unavailable"},503);
+    const contactMap=new Map((contacts.data||[]).map(x=>[x.id,x]));
     const rows=[
       ...(orders.data||[]).map(o=>({kind:"order",id:o.id,ref:o.order_ref,base_amount:Number(o.total_amount),payable_amount:Number(o.manual_upi_amount),customer:o.customer_name,mobile:o.customer_mobile,
        reported_at:o.payment_submitted_at,created_at:o.created_at,detail:"Product order"})),
-      ...(samples.data||[]).map(s=>({kind:"sample",id:s.id,ref:s.sample_ref,base_amount:Number(s.sample_price),payable_amount:Number(s.manual_upi_amount),customer:null,mobile:null,
+      ...(samples.data||[]).map(s=>({kind:"sample",id:s.id,ref:s.sample_ref,base_amount:Number(s.sample_price),payable_amount:Number(s.manual_upi_amount),customer:contactMap.get(s.contact_id)?.name||null,mobile:contactMap.get(s.contact_id)?.mobile||null,
        reported_at:s.payment_submitted_at,created_at:s.created_at,detail:(s.product_id||"Sample")+" · "+(s.locality||"")}))
     ].sort((a,b)=>(Boolean(b.reported_at)?1:0)-(Boolean(a.reported_at)?1:0)||String(b.created_at).localeCompare(String(a.created_at)));
     return respond({rows,reported_count:rows.filter(x=>x.reported_at).length,pending_count:rows.length,note:"Check a real bank credit at the exact amount and verify recipient/sender/date; a customer claim or exact amount alone is not proof."});
