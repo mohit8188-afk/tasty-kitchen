@@ -9,9 +9,9 @@ function cors(o:string|null){return {"Access-Control-Allow-Origin":o&&ORIGINS.ha
 "Access-Control-Allow-Headers":"content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Content-Type":"application/json","Cache-Control":"no-store","Vary":"Origin"};}
 function answer(o:unknown,s=200,origin:string|null=null){return new Response(JSON.stringify(o),{status:s,headers:cors(origin)});}
 function upi(ref:string,amount:number){
- const vpa=clean(Deno.env.get("TK_MANUAL_UPI_VPA"),100),payee=clean(Deno.env.get("TK_MANUAL_UPI_PAYEE")||"Tasty Kitchen",80);
+ const vpa="mohit8188-1@okicici",payee=clean(Deno.env.get("TK_MANUAL_UPI_PAYEE")||"Tasty Kitchen",80); // Founder-provided public receiving UPI VPA.
  const valid=/^[a-zA-Z0-9._-]{2,}@[a-zA-Z0-9.-]{2,}$/.test(vpa);
- const args=new URLSearchParams({pa:vpa,pn:payee,am:amount.toFixed(2),cu:"INR",tr:ref,tn:"Tasty Kitchen sample "+ref});
+ const args=new URLSearchParams({pa:vpa,pn:payee,am:amount.toFixed(2),cu:"INR",tn:"Tasty Kitchen sample "+ref});
  return {upi_uri:valid?"upi://pay?"+args.toString():null,upi_vpa:valid?vpa:null,payee_name:payee,payee_phone:"9834621628"};
 }
 Deno.serve(async req=>{
