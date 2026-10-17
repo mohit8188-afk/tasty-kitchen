@@ -85,10 +85,10 @@ Deno.serve(async req=>{
   const now=new Date().toISOString();
   let contactId=contact?.id;
   if(contactId){
-    const {error:e}=await db.from("tk_contacts").update({name,mobile,address,pincode,last_seen_at:now,last_contact_at:now,source:"website"}).eq("id",contactId);
+    const {error:e}=await db.from("tk_contacts").update({name,mobile,address,pincode:pin,last_seen_at:now,last_contact_at:now,source:"website"}).eq("id",contactId);
     if(e)return result({error:"customer_update_failed"},500,origin);
   }else{
-    const {data:c,error:e}=await db.from("tk_contacts").insert({name,mobile,normalized_mobile:mobile,address,pincode,lifecycle_stage:"lead",source:"website",last_contact_at:now}).select("id").single();
+    const {data:c,error:e}=await db.from("tk_contacts").insert({name,mobile,normalized_mobile:mobile,address,pincode:pin,lifecycle_stage:"lead",source:"website",last_contact_at:now}).select("id").single();
     if(e||!c)return result({error:"customer_create_failed"},500,origin);contactId=c.id;
   }
   const {data:allocation,error:allocError}=await db.rpc("tk_allocate_upi_amount",{p_kind:"order",p_checkout_id:clientId,p_base_paise:total*100});
