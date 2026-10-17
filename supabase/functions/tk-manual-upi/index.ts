@@ -54,7 +54,7 @@ Deno.serve(async req=>{
     return result({ok:true,order_ref:ref,status:"awaiting_bank_verification",message:"Your payment report is saved. We will confirm your order after checking the bank credit."},200,origin);
   }
   if(body.action!=="create")return result({error:"invalid_action"},400,origin);
-  if(!paymentInstructions("TK-PREVIEW",50).upi_vpa)return result({error:"upi_not_configured",message:"UPI checkout is being activated. Please contact Tasty Kitchen on WhatsApp."},503,origin);
+ // A verified UPI VPA enables deep links; otherwise show the founder-approved receiving UPI number with exact amount.
   const name=clean(body.name,100),mobile=digits(body.mobile),address=clean(body.address,600);
   const pin=clean(body.pincode,10),deliveryDate=clean(body.delivery_date,20),clientId=clean(body.client_checkout_id,120);
   if(name.length<2||!/^[6-9]\d{9}$/.test(mobile)||address.length<8||!/^\d{6}$/.test(pin)||!/^\d{4}-\d{2}-\d{2}$/.test(deliveryDate)||!isCheckoutId(clientId))
