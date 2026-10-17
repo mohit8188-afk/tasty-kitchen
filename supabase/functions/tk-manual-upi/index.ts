@@ -28,6 +28,7 @@ function paymentInstructions(orderRef:string,total:number){
 Deno.serve(async req=>{
   const origin=req.headers.get("origin");
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:headers(origin)});
+ try{
   if(req.method!=="POST")return result({error:"method_not_allowed"},405,origin);
   if(origin&&!ORIGINS.has(origin))return result({error:"origin_not_allowed"},403,origin);
   let body:Record<string,any>;
@@ -75,6 +76,8 @@ Deno.serve(async req=>{
   if(existsErr)return result({error:"lookup_failed"},500,origin);
   if(existing){
     if(existing.payment_provider!=="manual_upi"||Number(existing.total_amount)!==total)return result({error:"checkout_conflict"},409,origin);
+    if(existing.payment_status==="paid")return result({error:"order_already_paid",message:"This order has already been paid. Please do not send another transfer."},409,origin);
+    if(existing.payment_status!=="pending")return result({error:"order_not_payable",message:"This previous order cannot accept another payment. Please contact Tasty Kitchen."},409,origin);
     const {data:a}=await db.from("tk_upi_reservations").select("amount_paise").eq("client_checkout_id",clientId).maybeSingle();
     if(!a)return result({error:"payment_reservation_missing"},503,origin);
     return result({ok:true,order_ref:existing.order_ref,total_amount:total,upi_amount:Number(a.amount_paise)/100,payment_status:existing.payment_status,
@@ -85,10 +88,10 @@ Deno.serve(async req=>{
   const now=new Date().toISOString();
   let contactId=contact?.id;
   if(contactId){
-    const {error:e}=await db.from("tk_contacts").update({name,mobile,address,pincode,last_seen_at:now,last_contact_at:now,source:"website"}).eq("id",contactId);
+    const {error:e}=await db.from("tk_contacts").update({name,mobile,address,pincode:pin,last_seen_at:now,last_contact_at:now,source:"website"}).eq("id",contactId);
     if(e)return result({error:"customer_update_failed"},500,origin);
   }else{
-    const {data:c,error:e}=await db.from("tk_contacts").insert({name,mobile,normalized_mobile:mobile,address,pincode,lifecycle_stage:"lead",source:"website",last_contact_at:now}).select("id").single();
+    const {data:c,error:e}=await db.from("tk_contacts").insert({name,mobile,normalized_mobile:mobile,address,pincode:pin,lifecycle_stage:"lead",source:"website",last_contact_at:now}).select("id").single();
     if(e||!c)return result({error:"customer_create_failed"},500,origin);contactId=c.id;
   }
   const {data:allocation,error:allocError}=await db.rpc("tk_allocate_upi_amount",{p_kind:"order",p_checkout_id:clientId,p_base_paise:total*100});
@@ -114,4 +117,8 @@ Deno.serve(async req=>{
   await db.from("tk_interactions").insert({contact_id:contactId,channel:"website",direction:"inbound",event_type:"manual_upi_order_created",
     summary:"Customer created an unpaid manual UPI order.",metadata:{order_ref:order.order_ref,total_amount:total}});
   return result({ok:true,order_ref:order.order_ref,total_amount:total,upi_amount:payable,adjustment_amount:Number((payable-total).toFixed(2)),payment_status:"pending",...paymentInstructions(order.order_ref,payable)},201,origin);
+  }catch(err){
+    console.error("tk-manual-upi-unhandled",err instanceof Error?err.name:"unknown");
+    return result({error:"checkout_service_error",message:"We could not prepare the payment right now. Please retry; if you already paid, do not pay again."},503,origin);
+  }
 });
