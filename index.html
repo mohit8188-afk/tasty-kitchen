@@ -467,12 +467,12 @@
         </div>
 
         <div class="payment-preview">
-          <div><strong>100% advance payment</strong><span>UPI transfer • bank-verified confirmation</span></div>
+          <div><strong>100% advance payment</strong><span>Razorpay Standard Checkout • test mode</span></div>
           <span class="secure-mark" aria-hidden="true">◇</span>
         </div>
 
         <button class="primary-btn checkout-pay" type="submit">Continue to secure payment • <span id="checkoutTotal"></span></button>
-        <small class="checkout-secure-note">Manual UPI payments: a small unique amount is added for bank matching. Orders are confirmed only after credit verification.</small>
+        <small class="checkout-secure-note">Razorpay test mode: no real money is collected. Production checkout remains disabled until live account activation and verification.</small>
       </form>
     </div>
   </section>
@@ -486,11 +486,11 @@
           <p class="kicker">QUICK UPI PAYMENT</p>
           <h3 id="paymentTitle">Pay with your UPI app</h3>
         </div>
-        <span class="razorpay-badge">UPI</span>
+        <span class="razorpay-badge">Razorpay TEST</span>
       </div>
       <div id="paymentSummary" class="payment-order-card"></div>
       <div class="payment-trust-row" aria-label="Payment options and security">
-        <span>GPay · PhonePe · Paytm</span><span>Exact amount</span><span>Bank verified</span>
+        <span>Razorpay Standard Checkout</span><span>Signed verification</span><span>Test mode</span>
       </div>
       <div class="payment-status-card" id="paymentStatus" role="status" aria-live="polite">
         Preparing secure payment…
@@ -511,7 +511,7 @@
         <p>After successful transfer, return and select “I've completed the payment.” Do not pay twice.</p>
       </details>
       <button class="payment-back-btn" type="button" data-close-payment>← Back to checkout</button>
-      <p class="payment-fineprint">After paying, return here and tap “I’ve completed the payment.” We’ll verify the bank credit. No screenshot or transaction ID needed.</p>
+      <p class="payment-fineprint">This is a Razorpay test transaction. Payment is confirmed only after the server verifies its signature and captured status.</p>
     </div>
   </section>
 
