@@ -855,7 +855,7 @@ document.getElementById('reviewForm')?.addEventListener('submit',async e=>{
       const messages={
         invalid_reference:'Please enter a valid TKS or TKO reference.',
         verification_failed:'We could not match this reference with the mobile number used for the request.',
-        not_eligible_yet:'Feedback opens after the sample or order has been marked delivered.',
+        not_eligible_yet:'Feedback opens after the order has been marked delivered.',
         review_exists:'Feedback has already been submitted for this reference.'
       };
       status.textContent=messages[data.error] || data.message || 'We could not submit your feedback. Please check the details and try again.';
@@ -948,7 +948,7 @@ window.addEventListener('keydown',e=>{
   const photoOpen=photo?.classList.contains('open');
   if(e.key==='Escape'){
     if(photoOpen) closePhotoLightbox();
-    else if(document.getElementById('sampleLayer')?.classList.contains('is-open')) setLayer(document.getElementById('sampleLayer'),false);
+    
     else if(paymentLayer.classList.contains('is-open')) closePayment();
     else if(checkoutLayer.classList.contains('is-open')) closeCheckout();
     else closeProduct();
@@ -957,8 +957,7 @@ window.addEventListener('keydown',e=>{
     e.preventDefault();showLightboxPhoto(activeMediaIndex+(e.key==='ArrowRight'?1:-1));
   }
   if(e.key==='Tab'){
-    const sample=document.getElementById('sampleLayer');
-    const layer=photoOpen?photo:paymentLayer.classList.contains('is-open')?paymentLayer:sample?.classList.contains('is-open')?sample:checkoutLayer.classList.contains('is-open')?checkoutLayer:productLayer.classList.contains('is-open')?productLayer:null;
+    const layer=photoOpen?photo:paymentLayer.classList.contains('is-open')?paymentLayer:checkoutLayer.classList.contains('is-open')?checkoutLayer:productLayer.classList.contains('is-open')?productLayer:null;
     if(!layer) return;
     const items=[...layer.querySelectorAll('button,a[href],input,textarea')].filter(el=>!el.disabled && el.getClientRects().length);
     const first=items[0],last=items.at(-1);
