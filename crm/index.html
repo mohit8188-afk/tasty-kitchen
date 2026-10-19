@@ -162,6 +162,23 @@ if(view==="orders"){
   const next={confirmed:"preparing",preparing:"packed",packed:"out_for_delivery",out_for_delivery:"delivered"}[o.order_status];
   if(o.payment_status==="paid"&&next){const button=el("button",next==="preparing"?"Start preparing":"Mark "+next.replaceAll("_"," "));button.onclick=async()=>{if(!confirm("Update "+o.order_ref+" to "+next+"?"))return;button.disabled=true;try{await api("order_transition",{}, {order_id:o.id,to_status:next});await loadView("orders")}catch(e){status(e.message);button.disabled=false}};actions.append(button)}
   if(o.payment_environment==="live"&&o.payment_status!=="paid"&&o.razorpay_order_id){const check=el("button","Recheck Razorpay","secondary");check.onclick=async()=>{check.disabled=true;try{const res=await api("reconcile_order",{}, {order_id:o.id});status(res.message||("Razorpay status: "+res.status+" • "+o.order_ref));if(res.updated)await loadView("orders")}catch(e){status(e.message)}finally{check.disabled=false}};actions.append(check)}
+  // Staff-triggered WhatsApp draft only: verified live paid orders, no API sending.
+  if(o.payment_environment==="live"&&o.payment_status==="paid"&&o.order_ref){
+   const digits=String(o.customer_mobile||"").replace(/\D/g,"");
+   const destination=digits.length===10?"91"+digits:(digits.length===12&&digits.startsWith("91")?digits:"");
+   if(destination){
+    const draft=el("button","WhatsApp confirmation","secondary");
+    draft.title="Open a prefilled confirmation; review and press Send in WhatsApp";
+    draft.onclick=()=>{
+     const products=(o.items||[]).map(x=>(x.quantity||1)+" × "+(x.product_name||"Sweet")+(x.pack_grams?" ("+x.pack_grams+"g)":"")).join(", ");
+     const total=Number(o.total_amount||0);
+     const lines=["Hello "+(o.customer_name||"")+"!","Thank you for ordering from Tasty Kitchen.","Your order "+o.order_ref+" is confirmed.","Payment received: ₹"+total.toLocaleString("en-IN",{maximumFractionDigits:2}),products?"Items: "+products:null,o.delivery_date?"Requested delivery date: "+o.delivery_date:null,"For any assistance, reply to this message.","— Tasty Kitchen"].filter(Boolean);
+     const link="https://wa.me/"+destination+"?text="+encodeURIComponent(lines.join("\n"));
+     window.open(link,"_blank","noopener,noreferrer");
+    };
+    actions.append(draft);
+   }
+  }
   if(o.contact_id){const detail=el("button","Customer history","secondary");detail.onclick=()=>showContact(o.contact_id);actions.append(detail)}
   if(actions.children.length)tile.append(actions);
   list.append(tile);
