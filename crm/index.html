@@ -41,7 +41,7 @@ const panel=el("div");content.append(panel);
 function render(x){panel.replaceChildren();const metrics=el("div",undefined,"summary");
 for(const [label,value] of [["Sessions",x.sessions],["Page views",x.page_views],["Product opens",x.product_opens],["Checkout starts",x.checkout_starts],["Paid orders",x.verified_paid_orders],["Verified revenue","₹"+Number(x.verified_revenue||0).toLocaleString("en-IN")]]){const c=el("div",undefined,"metric");c.append(el("div",String(value),"stat"),el("div",label,"label"));metrics.append(c)}
 panel.append(metrics);
-for(const [heading,rows] of [["Top product interactions",x.product_counts],["Campaign sources",x.sources],["Pages",x.pages]]){const box=el("section",undefined,"card");box.append(el("h2",heading));for(const r of (rows||[]).slice(0,8))box.append(item(r.name,String(r.count)+" tracked events"));if(!(rows||[]).length)box.append(el("p","No activity recorded yet.","muted"));panel.append(box)}
+for(const [heading,rows] of [["Top product interactions",x.product_counts],["Campaign sources",x.sources],["Pages",x.pages]]){const box=el("section",undefined,"card");box.append(el("h2",heading));for(const r of (rows||[]).slice(0,8))box.append(item(r.name,String(r.count)+(heading==="Top product interactions"?" sessions":" tracked events")));if(!(rows||[]).length)box.append(el("p","No activity recorded yet.","muted"));panel.append(box)}
 panel.append(el("p","Traffic counts are approximate: repeat sessions, browser restrictions and ad blockers affect measurements. Orders and revenue count verified live payments only. Source labels depend on tagged campaign links.","muted"));if(x.capped)panel.append(el("p","Event sample limit reached; longer-range figures are incomplete.","notice"))}
 render(d);return}
 if(view==="upi"){
