@@ -87,7 +87,19 @@ Deno.serve(async(req:Request)=>{
    if(action==="orders")query=query.eq("payment_environment","live");
    if(action==="tasting")query=query.eq("payment_environment","live");
    const {data,error}=await query;
-   return error?respond({error:"query_failed"},500):respond({rows:data,mode:["orders","tasting"].includes(action)?"live_only":null});
+   if(error)return respond({error:"query_failed"},500);
+   if(action==="orders"){
+     const orders=data||[];
+     const ids=orders.map((o:any)=>o.id);
+     let lines:any[]=[];
+     if(ids.length){
+       const result=await db.from("tk_order_items").select("order_id,product_name,pack_grams,quantity,line_total").in("order_id",ids);
+       if(result.error)return respond({error:"order_items_unavailable"},503);
+       lines=result.data||[];
+     }
+     return respond({rows:orders.map((o:any)=>({...o,items:lines.filter((x:any)=>x.order_id===o.id)})),mode:"live_only"});
+   }
+   return respond({rows:data,mode:action==="tasting"?"live_only":null});
   }
  }
  if(req.method==="POST"&&action==="upi_review"){
