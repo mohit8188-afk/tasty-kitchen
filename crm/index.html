@@ -161,6 +161,7 @@ if(view==="orders"){
   }
   const next={confirmed:"preparing",preparing:"packed",packed:"out_for_delivery",out_for_delivery:"delivered"}[o.order_status];
   if(o.payment_status==="paid"&&next){const button=el("button",next==="preparing"?"Start preparing":"Mark "+next.replaceAll("_"," "));button.onclick=async()=>{if(!confirm("Update "+o.order_ref+" to "+next+"?"))return;button.disabled=true;try{await api("order_transition",{}, {order_id:o.id,to_status:next});await loadView("orders")}catch(e){status(e.message);button.disabled=false}};actions.append(button)}
+  if(o.payment_environment==="live"&&o.payment_status!=="paid"&&o.razorpay_order_id){const check=el("button","Recheck Razorpay","secondary");check.onclick=async()=>{check.disabled=true;try{const res=await api("reconcile_order",{}, {order_id:o.id});status(res.message||("Razorpay status: "+res.status+" • "+o.order_ref));if(res.updated)await loadView("orders")}catch(e){status(e.message)}finally{check.disabled=false}};actions.append(check)}
   if(o.contact_id){const detail=el("button","Customer history","secondary");detail.onclick=()=>showContact(o.contact_id);actions.append(detail)}
   if(actions.children.length)tile.append(actions);
   list.append(tile);
