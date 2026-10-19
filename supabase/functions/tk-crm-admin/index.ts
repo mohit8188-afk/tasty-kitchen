@@ -115,7 +115,7 @@ Deno.serve(async(req:Request)=>{
   if(["tasting","orders","gifting","tasks"].includes(action)){
    const map:{[key:string]:[string,string]}={tasting:["tk_sample_requests","created_at"],orders:["tk_orders","created_at"],gifting:["tk_gifting_inquiries","created_at"],tasks:["tk_crm_tasks","created_at"]};
    const [table,order]=map[action];let query=db.from(table).select("*").order(order,{ascending:false}).limit(100);
-   if(action==="orders")query=query.eq("payment_environment","live");
+   if(action==="orders")query=query.eq("payment_environment","live").eq("payment_status","paid");
    if(action==="tasting")query=query.eq("payment_environment","live");
    const {data,error}=await query;
    if(error)return respond({error:"query_failed"},500);
