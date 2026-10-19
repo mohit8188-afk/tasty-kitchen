@@ -691,8 +691,8 @@ async function prepareRazorpayPayment(){
   if(preparePaymentPromise)return preparePaymentPromise;
   btn.disabled=true;
   paymentStatus('Preparing secure checkout','Creating an order with the payment gateway…');
-  const id=sessionStorage.getItem('tkRazorpayCheckoutId')||(crypto?.randomUUID?.()||('tkr-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
-  sessionStorage.setItem('tkRazorpayCheckoutId',id);
+  const id=sessionStorage.getItem('tkRazorpayLiveCheckoutId')||(crypto?.randomUUID?.()||('tkr-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+  sessionStorage.setItem('tkRazorpayLiveCheckoutId',id);
   const payload={...pendingCheckoutPayload,client_checkout_id:id,items:buildServerCart(),attribution:checkoutAttribution()};
   preparePaymentPromise=(async()=>{
     const res=await fetch(TK_PAYMENT_CREATE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -700,9 +700,9 @@ async function prepareRazorpayPayment(){
     if(!res.ok||!data.ok)throw Error(data.message||'Could not create Razorpay order. Please try again.');
     if(!data.razorpay_order_id||!data.key_id||!Number.isInteger(Number(data.amount_paise))||Number(data.amount_paise)<100)throw Error('Gateway returned incomplete order details.');
     if(Number(data.amount_paise)!==Math.round(cartSubtotal()*100))throw Error('The cart total changed. Please restart checkout.');
-    if(data.payment_environment!=='test')throw Error('Checkout is configured for an unexpected environment. Contact Tasty Kitchen.');
+    if(data.payment_environment!=='live')throw Error('Checkout is configured for an unexpected environment. Contact Tasty Kitchen.');
     preparedPayment={created:data,payload};
-    paymentStatus('TEST payment • ₹'+(Number(data.amount_paise)/100).toFixed(2),'This new Razorpay account is in test mode. No real money will be collected.');
+    paymentStatus('Secure payment • ₹'+(Number(data.amount_paise)/100).toFixed(2),'Live payment: funds will be charged by Razorpay. Please verify the amount before continuing.');
     btn.textContent='Open Razorpay test checkout • ₹'+(Number(data.amount_paise)/100).toFixed(2);
     btn.disabled=false;
     return preparedPayment;
@@ -723,7 +723,7 @@ async function beginRazorpayPayment(){
     const data=prepared.created;
     const modal=new window.Razorpay({
       key:data.key_id,amount:data.amount_paise,currency:data.currency||'INR',
-      name:'Tasty Kitchen',description:'Festive sweets • TEST MODE',
+      name:'Tasty Kitchen',description:'Freshly made festive sweets',
       order_id:data.razorpay_order_id,
       prefill:{name:pendingCheckoutPayload.name,contact:pendingCheckoutPayload.mobile},
       notes:{order_ref:data.order_ref},
@@ -743,11 +743,11 @@ async function beginRazorpayPayment(){
           })});
           const result=await res.json().catch(()=>({}));
           if(!res.ok||!result.ok||result.payment_status!=='paid')throw Error(result.message||'Payment could not be verified. Please contact us before retrying.');
-          paymentStatus('Test payment verified • '+result.order_ref,'Razorpay signature and capture confirmed. This was a test transaction, not a real payment.');
+          paymentStatus('Payment verified • '+result.order_ref,'Payment captured and verified. Your order is confirmed.');
           btn.hidden=true;
-          sessionStorage.removeItem('tkRazorpayCheckoutId');
+          sessionStorage.removeItem('tkRazorpayLiveCheckoutId');
           cart=[];saveCart();renderCart();
-          trackEvent('payment_complete',{metadata:{order_ref:result.order_ref,total:data.amount_paise/100,payment_environment:'test'}});
+          trackEvent('payment_complete',{metadata:{order_ref:result.order_ref,total:data.amount_paise/100,payment_environment:'live'}});
         }catch(err){
           paymentStatus('Verification pending',err.message||'Please contact us before paying again.');
           btn.disabled=true;btn.textContent='Contact us to verify payment';
