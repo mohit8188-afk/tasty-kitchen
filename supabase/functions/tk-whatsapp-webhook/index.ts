@@ -25,11 +25,11 @@ Deno.serve(async req=>{
    // The sample sender ID can be configured in Supabase without exposing any access token.
    if(!allowedId||recipient!==allowedId)continue;
    for(const m of (Array.isArray(val.messages)?val.messages:[])){
-    const id=String(m.id||""),wa=String(m.from||"").replace(/\\D/g,"");
-    if(!id||!/^\\d{10,15}$/.test(wa)||id.length>250)continue;
+    const id=String(m.id||""),wa=String(m.from||"").replace(/\D/g,"");
+    if(!id||!/^\d{10,15}$/.test(wa)||id.length>250)continue;
     const mobile=wa.slice(-10);
     const {data:customer}=await db.from("tk_contacts").select("id").eq("normalized_mobile",mobile).limit(1).maybeSingle();
-    const payload={provider_message_id:id,wa_id:wa,phone_number_id:recipient,contact_id:customer?.id||null,message_type:String(m.type||"unknown").slice(0,30),text_body:m.type==="text"?String(m.text?.body||"").slice(0,3000):null,processed_state:customer?"received":"needs_review",provider_timestamp:/^\\d{9,12}$/.test(String(m.timestamp||""))?new Date(Number(m.timestamp)*1000).toISOString():null};
+    const payload={provider_message_id:id,wa_id:wa,phone_number_id:recipient,contact_id:customer?.id||null,message_type:String(m.type||"unknown").slice(0,30),text_body:m.type==="text"?String(m.text?.body||"").slice(0,3000):null,processed_state:customer?"received":"needs_review",provider_timestamp:/^\d{9,12}$/.test(String(m.timestamp||""))?new Date(Number(m.timestamp)*1000).toISOString():null};
     const {error}=await db.from("tk_whatsapp_inbox_events").insert(payload);
     if(error){if(error.code==="23505"){duplicates++;continue}console.error("whatsapp_inbox_insert_error",error.code);return reply("storage_failure",503)}
     saved++;
