@@ -652,7 +652,9 @@ function closeCheckout(){
 document.querySelectorAll('[data-close-checkout]').forEach(el=>el.addEventListener('click',closeCheckout));
 
 const date=new Date();date.setDate(date.getDate()+1);
-document.getElementById('deliveryDate').min=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const tkTomorrow=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const deliveryDateInput=document.getElementById('deliveryDate');deliveryDateInput.min=tkTomorrow;deliveryDateInput.value=tkTomorrow;
+const giftingDeliveryDateInput=document.getElementById('giftingDeliveryDate');if(giftingDeliveryDateInput)giftingDeliveryDateInput.min=tkTomorrow;
 const TK_PAYMENT_CREATE_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-payment-create';
 const TK_PAYMENT_VERIFY_URL='https://prlcmyokoeecemnribqd.supabase.co/functions/v1/tk-payment-verify';
 let pendingCheckoutPayload=null;
@@ -785,6 +787,7 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
   e.preventDefault();
   if(!e.currentTarget.reportValidity())return;
   if(!cart.length){showToast('Your cart is empty. Please add a sweet first.');return;}
+  if(document.getElementById('deliveryDate').value<tkTomorrow){showToast('Please choose tomorrow or a later delivery date.');return;}
   const subtotal=cartSubtotal(),pin=document.getElementById('customerPin').value.trim();
   const lines=cart.map(item=>{
     const product=PRODUCTS.find(p=>p.id===item.productId);
@@ -909,7 +912,7 @@ document.getElementById('giftingForm')?.addEventListener('submit',async e=>{
     city:document.getElementById('giftingCity').value.trim(),
     quantity_range:document.getElementById('giftingQuantity').value,
     product_interest:selected,
-    requirement_notes:document.getElementById('giftingNotes').value.trim(),
+    requirement_notes:[document.getElementById('giftingDeliveryDate').value?'Preferred delivery date: '+document.getElementById('giftingDeliveryDate').value:'',document.getElementById('giftingNotes').value.trim()].filter(Boolean).join('\n'),
     source:'website',
     utm_source:qs.get('utm_source'),
     utm_medium:qs.get('utm_medium'),
@@ -987,7 +990,7 @@ function syncRoute(){
 }
 window.addEventListener('popstate',syncRoute);
 window.addEventListener('hashchange',syncRoute);
-document.querySelector('.hero-order-link').addEventListener('click',e=>{
+document.querySelector('.hero-order-link')?.addEventListener('click',e=>{
   e.preventDefault();openProduct(PRODUCTS[0].id,e.currentTarget);
 });
 
