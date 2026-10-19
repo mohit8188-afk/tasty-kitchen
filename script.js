@@ -743,7 +743,17 @@ async function beginRazorpayPayment(){
           })});
           const result=await res.json().catch(()=>({}));
           if(!res.ok||!result.ok||result.payment_status!=='paid')throw Error(result.message||'Payment could not be verified. Please contact us before retrying.');
-          paymentStatus('Payment verified • '+result.order_ref,'Payment captured and verified. Your order is confirmed.');
+          paymentStatus('Payment verified','Razorpay has confirmed your payment.');
+          const thanks=document.getElementById('paymentThankYou');
+          document.getElementById('thankYouOrderRef').textContent=result.order_ref;
+          document.getElementById('thankYouWhatsApp').href='https://wa.me/919662097395?text='+encodeURIComponent('Hi Tasty Kitchen, my order '+result.order_ref+' is paid and confirmed. Please share order and delivery updates.');
+          thanks.hidden=false;
+          document.querySelector('#paymentLayer .payment-head').hidden=true;
+          document.getElementById('paymentSummary').hidden=true;
+          document.querySelector('#paymentLayer .payment-trust-row').hidden=true;
+          document.querySelector('#paymentLayer .payment-status-card').hidden=true;
+          document.querySelector('#paymentLayer .payment-fineprint').hidden=true;
+          document.querySelector('#paymentLayer .payment-back-btn:not(.thankyou-close)').hidden=true;
           btn.hidden=true;
           sessionStorage.removeItem('tkRazorpayLiveCheckoutId');
           cart=[];saveCart();renderCart();
@@ -769,6 +779,7 @@ const paymentLayer=document.getElementById('paymentLayer');
 function closePayment(){if(paymentLayer.classList.contains('is-open')&&!razorpayModalOpen)setLayer(paymentLayer,false);}
 document.querySelectorAll('[data-close-payment]').forEach(el=>el.addEventListener('click',closePayment));
 document.getElementById('payNowBtn')?.addEventListener('click',beginRazorpayPayment);
+document.getElementById('thankYouClose')?.addEventListener('click',()=>{closePayment();closeCheckout();if(productLayer.classList.contains('is-open'))closeProduct();});
 
 document.getElementById('checkoutForm').addEventListener('submit',e=>{
   e.preventDefault();
@@ -787,6 +798,8 @@ document.getElementById('checkoutForm').addEventListener('submit',e=>{
   };
   document.getElementById('paymentSummary').innerHTML='<div class="payment-summary-top"><span>Order summary</span><strong>'+money(subtotal)+'</strong></div><div class="payment-lines">'+lines+'</div><div class="payment-meta"><span>Delivery <b>FREE</b></span><span>PIN <b>'+escapeHtml(pin)+'</b></span></div>';
   preparedPayment=null;preparePaymentPromise=null;
+  document.getElementById('paymentThankYou').hidden=true;
+  for(const selector of ['.payment-head','#paymentSummary','.payment-trust-row','.payment-status-card','.payment-fineprint','.payment-back-btn:not(.thankyou-close)'])document.querySelector('#paymentLayer '+selector).hidden=false;
   document.getElementById('payNowBtn').hidden=false;
   document.getElementById('payNowBtn').disabled=true;
   document.getElementById('payNowBtn').textContent='Preparing secure checkout…';
