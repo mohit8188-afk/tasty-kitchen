@@ -24,12 +24,12 @@ document.querySelector("#logout").onclick=()=>client?.auth.signOut();
 document.querySelector("#nav").onclick=e=>{const v=e.target.dataset.view;if(v)loadView(v)};
 async function api(action,params={},body){const url=new URL(config.functionsUrl);url.searchParams.set("action",action);for(const [k,v] of Object.entries(params))url.searchParams.set(k,v);const res=await fetch(url,{method:body?"POST":"GET",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json",apikey:config.anonKey},body:body?JSON.stringify(body):undefined,cache:"no-store"});if(!res.ok)throw Error("Request denied or unavailable ("+res.status+").");return res.json()}
 function item(text,detail,click){const div=el("div",undefined,"item"),a=el("strong",text),b=el("div",detail,"muted");div.append(a,b);if(click){div.tabIndex=0;div.onclick=click;div.onkeydown=e=>{if(e.key==="Enter")click()}}return div}
-async function loadView(view){selectedView=view;document.querySelectorAll("#nav button").forEach(b=>{b.classList.toggle("active",b.dataset.view===view);b.setAttribute("aria-current",b.dataset.view===view?"page":"false")});clear();content.append(el("p","Loading…","muted"));try{if(view==="dashboard"){const d=await api("dashboard");clear();
+async function loadView(view){selectedView=view;document.querySelectorAll("#nav button").forEach(b=>{b.classList.toggle("active",b.dataset.view===view);b.setAttribute("aria-current",b.dataset.view===view?"page":"false")});clear();content.append(el("p","Loading…","muted"));try{if(view==="dashboard"){const [d,op]=await Promise.all([api("dashboard"),api("operations")]);clear();
 const hero=el("section",undefined,"hero");hero.append(el("div","✦ YOUR KITCHEN AT A GLANCE","eyebrow"),el("h2","Today's kitchen, made simple"),el("p","Everything needing your attention, in one place."));content.append(hero);
 const metrics=[
 {label:"Today’s sales",value:"₹"+Number(d.counts?.today_sales_inr??0).toLocaleString("en-IN"),icon:"💰",view:"orders"},
-{label:"Orders to prepare",value:d.counts?.live_paid_orders??0,icon:"🧑‍🍳",view:"orders"},
-{label:"Pending deliveries",value:d.counts?.live_pending_delivery??0,icon:"🚚",view:"orders"},
+{label:"Orders to prepare",value:op.preparing??0,icon:"🧑‍🍳",view:"kitchen"},
+{label:"Tomorrow’s orders",value:op.tomorrow_orders??0,icon:"🚚",view:"kitchen"},
 {label:"Gifting enquiries",value:d.counts?.gifting_inquiries??0,icon:"🎁",view:"gifting"},
 {label:"Follow-ups due",value:d.counts?.overdue_tasks??0,icon:"🔔",view:"tasks"}];
 const box=el("div",undefined,"summary");for(const m of metrics){const card=el("div",undefined,"metric");card.append(el("div",m.icon,"iconball"),el("div",m.value,"stat"),el("div",m.label,"label"));card.tabIndex=0;card.setAttribute("role","button");card.onclick=()=>loadView(m.view);card.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();loadView(m.view)}};box.append(card)}content.append(box,el("p","Sales count only verified live paid orders, by India time. Test and unpaid orders are excluded.","muted"));
