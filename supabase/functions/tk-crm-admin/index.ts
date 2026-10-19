@@ -59,6 +59,37 @@ Deno.serve(async(req:Request)=>{
    const overdue=(tasks.data||[]).filter(x=>x.due_at&&new Date(x.due_at)<new Date()).length;
    return respond({counts:{today_sales_inr:todaySales,today_paid_orders:todayPaid.length,sales_date_ist:istDay,contacts:contacts.count||0,live_orders:real.length,live_paid_orders:pendingDelivery.length,live_pending_delivery:pendingDelivery.length,live_paid_revenue_inr:revenue,tasting_requests:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid"&&!["delivered","converted","lost","cancelled","rejected"].includes(x.status)).length,live_paid_tastings:(samples.data||[]).filter(x=>x.payment_environment==="live"&&x.payment_status==="paid").length,gifting_inquiries:gifting.count||0,open_tasks:(tasks.data||[]).length,overdue_tasks:overdue,test_orders:test.length},notice:"Today’s sales = live paid order collections recorded today (Asia/Kolkata). Excludes test, pending and failed payments; refunds and reconciliation may adjust this figure."});
   }
+  if(action==="operations"){
+   const [orders,gifting,tasks]=await Promise.all([
+    db.from("tk_orders").select("id,order_ref,customer_name,customer_mobile,delivery_date,delivery_scope,delivery_address,delivery_pincode,total_amount,payment_status,order_status,paid_at").eq("payment_environment","live").eq("payment_status","paid").order("delivery_date",{ascending:true}).limit(500),
+    db.from("tk_gifting_inquiries").select("id,status,created_at").order("created_at",{ascending:false}).limit(500),
+    db.from("tk_crm_tasks").select("id,status,due_at").limit(500)
+   ]);
+   if(orders.error||gifting.error||tasks.error)return respond({error:"operations_unavailable"},503);
+   const rows=(orders.data||[]).filter((o:any)=>!["cancelled","delivered"].includes(o.order_status));
+   const ids=rows.map((o:any)=>o.id);let items:any[]=[];
+   if(ids.length){const res=await db.from("tk_order_items").select("order_id,product_name,pack_grams,quantity").in("order_id",ids);if(res.error)return respond({error:"production_items_unavailable"},503);items=res.data||[]}
+   const fmt=(date:Date)=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);
+   const today=fmt(new Date());const tm=new Date();tm.setDate(tm.getDate()+1);const tomorrow=fmt(tm);
+   const schedule=rows.map((o:any)=>({...o,items:items.filter((x:any)=>x.order_id===o.id)}));
+   const tomorrowOrders=schedule.filter((o:any)=>o.delivery_date===tomorrow);
+   const totals=new Map<string,number>();for(const o of tomorrowOrders)for(const x of o.items){const key=x.product_name+" • "+x.pack_grams+"g";totals.set(key,(totals.get(key)||0)+Number(x.quantity||0))}
+   const overdue=(tasks.data||[]).filter((t:any)=>!["completed","cancelled"].includes(t.status)&&t.due_at&&new Date(t.due_at)<new Date()).length;
+   return respond({today,tomorrow,upcoming:schedule,preparing:schedule.filter((o:any)=>o.order_status==="confirmed").length,awaiting_dispatch:schedule.filter((o:any)=>["preparing","packed","out_for_delivery"].includes(o.order_status)).length,tomorrow_orders:tomorrowOrders.length,tomorrow_items:[...totals].map(([product,quantity])=>({product,quantity})),open_gifting:(gifting.data||[]).filter((x:any)=>!["closed","completed","cancelled","lost"].includes(x.status)).length,overdue_tasks:overdue});
+  }
+  if(action==="analytics"){
+   const days=Math.min(90,Math.max(1,Number(u.searchParams.get("days")||7)||7));
+   const from=new Date(Date.now()-days*86400000).toISOString();
+   const [events,orders]=await Promise.all([
+    db.from("tk_analytics_events").select("event_name,session_id,product_id,page_path,utm_source,referrer,created_at").gte("created_at",from).order("created_at",{ascending:false}).limit(10000),
+    db.from("tk_orders").select("id,total_amount,payment_status,payment_environment,paid_at").eq("payment_environment","live").eq("payment_status","paid").gte("paid_at",from).limit(2000)
+   ]);
+   if(events.error||orders.error)return respond({error:"analytics_unavailable"},503);
+   const list=events.data||[];const grouped=(key:string)=>{const counts=new Map<string,number>();for(const e of list){const name=String((e as any)[key]||"Unknown");counts.set(name,(counts.get(name)||0)+1)}return [...counts].sort((a,b)=>b[1]-a[1]).slice(0,12).map(([name,count])=>({name,count}))};
+   const eventCounts=new Map<string,number>();for(const e of list)eventCounts.set(e.event_name,(eventCounts.get(e.event_name)||0)+1);
+   const paid=orders.data||[];
+   return respond({days,capped:list.length>=10000,events:list.length,sessions:new Set(list.map((e:any)=>e.session_id).filter(Boolean)).size,page_views:eventCounts.get("page_view")||0,product_opens:eventCounts.get("product_open")||0,checkout_starts:eventCounts.get("checkout_start")||0,payment_events:eventCounts.get("payment_complete")||0,verified_paid_orders:paid.length,verified_revenue:paid.reduce((sum:number,o:any)=>sum+Number(o.total_amount||0),0),event_counts:[...eventCounts].map(([name,count])=>({name,count})).sort((a,b)=>b.count-a.count),product_counts:grouped("product_id").filter((x:any)=>x.name!=="Unknown"),sources:grouped("utm_source"),pages:grouped("page_path")});
+  }
   if(action==="contacts"){
    const search=(u.searchParams.get("q")||"").trim().slice(0,80).replace(/[%_,()]/g,"");
    let query=db.from("tk_contacts").select("id,name,mobile,city,locality,lifecycle_stage,tags,source,last_seen_at,whatsapp_opt_in,marketing_opt_in,do_not_contact").order("last_seen_at",{ascending:false}).limit(50);
