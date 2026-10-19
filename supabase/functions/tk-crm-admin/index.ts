@@ -189,6 +189,30 @@ Deno.serve(async(req:Request)=>{
   if(lang==="hi"&&topic==="unknown")reply="Tasty Kitchen से संपर्क करने के लिए धन्यवाद। हमारी टीम आपके सवाल की जाँच करके जवाब देगी।";
   return respond({draft:reply,topic,language:lang,human_handoff_recommended:handoff,customer_context:{order_count:(orders.data||[]).length,tasting_count:(samples.data||[]).length,gifting_count:(gifting.data||[]).length},customer_verified_by:"founder_admin_selection",delivery:"draft_only_not_sent",note:"Verify customer identity before any externally sent personalised order response."});
  }
+ if(req.method==="POST"&&action==="reconcile_order"){
+  let body:any;try{body=await req.json()}catch{return respond({error:"invalid_json"},400)}
+  if(typeof body.order_id!=="string"||!/^[0-9a-f-]{36}$/i.test(body.order_id))return respond({error:"invalid_order"},400);
+  const {data:order,error:orderError}=await db.from("tk_orders").select("id,order_ref,razorpay_order_id,total_amount,payment_environment,payment_status,order_status").eq("id",body.order_id).maybeSingle();
+  if(orderError||!order)return respond({error:"order_not_found"},404);
+  if(order.payment_environment!=="live"||!order.razorpay_order_id)return respond({error:"not_live_razorpay"},409);
+  if(order.payment_status==="paid")return respond({status:"paid",order_ref:order.order_ref,updated:false});
+  const key=Deno.env.get("RAZORPAY_KEY_ID"),secret=Deno.env.get("RAZORPAY_KEY_SECRET");
+  if(!key?.startsWith("rzp_live_")||!secret)return respond({error:"live_gateway_unavailable"},503);
+  const auth="Basic "+btoa(key+":"+secret);
+  const payRes=await fetch("https://api.razorpay.com/v1/orders/"+encodeURIComponent(order.razorpay_order_id)+"/payments",{headers:{Authorization:auth}});
+  if(!payRes.ok)return respond({error:"gateway_recheck_failed"},502);
+  const jsonPay=await payRes.json().catch(()=>({}));
+  const payments=Array.isArray(jsonPay.items)?jsonPay.items:[];
+  const captured=payments.find((x:any)=>x.order_id===order.razorpay_order_id&&x.status==="captured"&&x.currency==="INR"&&Number(x.amount)===Math.round(Number(order.total_amount)*100));
+  if(captured){
+    const now=new Date().toISOString();
+    const {data:updated,error:updateError}=await db.from("tk_orders").update({payment_status:"paid",order_status:"confirmed",razorpay_payment_id:captured.id,paid_at:now,failure_reason:null,updated_at:now}).eq("id",order.id).neq("payment_status","paid").select("id").maybeSingle();
+    if(updateError)return respond({error:"reconcile_update_failed"},500);
+    return respond({status:"paid",order_ref:order.order_ref,updated:!!updated});
+  }
+  const failed=payments.some((x:any)=>x.order_id===order.razorpay_order_id&&x.status==="failed");
+  return respond({status:failed?"failed_attempt":"pending",order_ref:order.order_ref,updated:false,message:failed?"Razorpay reports a failed payment attempt; no captured payment found.":"No captured payment found. Do not mark paid."});
+ }
  if(req.method==="POST"&&action==="order_transition"){
   let body:any;try{body=await req.json()}catch{return respond({error:"invalid_json"},400)}
   if(typeof body.order_id!=="string"||!/^[0-9a-f-]{36}$/i.test(body.order_id)||
